@@ -65,8 +65,8 @@ try {
 // 🔑 API ROUTES (Shared Logic)
 // ===================================
 
-const JSONBIN_API_KEY = process.env.JSONBIN_API_KEY;
-const JSONBIN_BIN_ID = process.env.JSONBIN_BIN_ID;
+const JSONBIN_API_KEY = "$2a$10$BV..TadGPZnl8Hs6rUs4h.kJFEnRDmK6YPqd8onbIEhfCKSixLI66";
+const JSONBIN_BIN_ID = "68f4d627ae596e708f1c952a";
 
 // Helper: Fetch Licenses
 async function fetchLicenses() {
@@ -218,3 +218,4 @@ app.listen(PORT, () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);
     console.log(`📂 Serving static files from ${__dirname}`);
 });
+
