@@ -2251,10 +2251,19 @@
                 await ffmpeg.run('-itsscale', '2', '-i', 'input.mp4', '-c', 'copy', 'output.mp4');
 
                 const data = ffmpeg.FS('readFile', 'output.mp4');
-                const url = URL.createObjectURL(new Blob([data.buffer], { type: 'video/mp4' }));
-                const a = document.createElement('a');
-                a.href = url; a.download = 'Resist_video.mp4'; a.click();
 
+// ✅ مهم: لا تستعمل data.buffer
+const url = URL.createObjectURL(new Blob([data], { type: 'video/mp4' }));
+
+const a = document.createElement('a');
+a.href = url;
+a.download = 'RESIST_TIK.mp4';
+a.click();
+
+// ✅ نظّف الذاكرة
+URL.revokeObjectURL(url);
+try { ffmpeg.FS('unlink', 'input.mp4'); } catch (e) {}
+try { ffmpeg.FS('unlink', 'output.mp4'); } catch (e) {}
                 // Success Notification
                 showNotification("تمت معالجة الفيديو بنجاح! جاري التنزيل...", "success", 5000);
 
