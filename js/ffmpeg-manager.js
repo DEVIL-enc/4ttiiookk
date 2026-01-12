@@ -200,7 +200,7 @@ class FFmpegManager {
         const { createFFmpeg } = FFmpeg;
 
         this.ffmpegInstance = createFFmpeg({
-            log: true,
+            log: false,
             corePath: coreUrl,
             // Force worker URL in config too for safety
             workerPath: workerUrl
@@ -219,7 +219,7 @@ class FFmpegManager {
         const coreUrl = new URL('lib/ffmpeg-core.js', window.location.href).href;
 
         this.ffmpegInstance = createFFmpeg({
-            log: true,
+            log: false,
             corePath: coreUrl
         });
 
@@ -234,3 +234,4 @@ class FFmpegManager {
 }
 
 const ffmpegManager = new FFmpegManager();
+
