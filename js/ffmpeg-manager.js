@@ -6,7 +6,7 @@
 class FFmpegManager {
     constructor() {
         this.ffmpegInstance = null;
-        this.isReady = true;
+        this.isReady = false;
         this.version = 'v0.11.0.c'; // New version to force refresh
         this.dbName = 'FlowTikCache';
         this.storeName = 'ffmpeg_files';
@@ -200,7 +200,7 @@ class FFmpegManager {
         const { createFFmpeg } = FFmpeg;
 
         this.ffmpegInstance = createFFmpeg({
-            log: false,
+            log: true,
             corePath: coreUrl,
             // Force worker URL in config too for safety
             workerPath: workerUrl
@@ -219,7 +219,7 @@ class FFmpegManager {
         const coreUrl = new URL('lib/ffmpeg-core.js', window.location.href).href;
 
         this.ffmpegInstance = createFFmpeg({
-            log: false,
+            log: true,
             corePath: coreUrl
         });
 
@@ -234,5 +234,3 @@ class FFmpegManager {
 }
 
 const ffmpegManager = new FFmpegManager();
-
-
