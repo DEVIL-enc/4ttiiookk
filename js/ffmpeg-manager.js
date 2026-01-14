@@ -6,7 +6,7 @@
 class FFmpegManager {
     constructor() {
         this.ffmpegInstance = null;
-        this.isReady = false;
+        this.isReady = true;
         this.version = 'v0.11.0.c'; // New version to force refresh
         this.dbName = 'FlowTikCache';
         this.storeName = 'ffmpeg_files';
@@ -234,4 +234,5 @@ class FFmpegManager {
 }
 
 const ffmpegManager = new FFmpegManager();
+
 
