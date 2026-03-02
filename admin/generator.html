@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlowTik Key Generator</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --bg: #0f172a;
+            --card: #1e293b;
+            --text: #fff;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: system-ui, -apple-system, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background-color: var(--card);
+            padding: 2rem;
+            border-radius: 1rem;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: var(--primary);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.5rem;
+            color: white;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+
+        input:focus,
+        select:focus {
+            outline: 2px solid var(--primary);
+            border-color: transparent;
+        }
+
+        button {
+            width: 100%;
+            padding: 1rem;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .output-area {
+            margin-top: 2rem;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            display: none;
+        }
+
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: monospace;
+            color: #a5b4fc;
+            margin: 0;
+            font-size: 0.9rem;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .copy-btn {
+            background-color: #10b981;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1><i class="fas fa-key"></i> Key Generator</h1>
+
+        <div class="form-group">
+            <label>Activation Duration</label>
+            <select id="duration">
+                <option value="1">1 Day (Test)</option>
+                <option value="30">1 Month (30 Days)</option>
+                <option value="90">3 Months</option>
+                <option value="180">6 Months</option>
+                <option value="365" selected>1 Year (365 Days)</option>
+                <option value="730">2 Years</option>
+                <option value="9999">Lifetime</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Quantity</label>
+            <input type="number" id="count" value="1" min="1" max="100">
+        </div>
+
+        <div class="form-group">
+            <label>Key Prefix (Optional)</label>
+            <input type="text" id="prefix" placeholder="e.g. VIP, USER, SALE"
+                oninput="this.value = this.value.toUpperCase()">
+        </div>
+
+        <button onclick="generateKeys()">Generate JSON</button>
+
+        <div class="output-area" id="outputArea">
+            <pre id="jsonOutput"></pre>
+            <button class="copy-btn" onclick="copyToClipboard()">Copy JSON</button>
+        </div>
+    </div>
+
+    <script>
+        function generateKeys() {
+            const duration = parseInt(document.getElementById('duration').value);
+            const count = parseInt(document.getElementById('count').value);
+            const prefix = document.getElementById('prefix').value.trim();
+
+            const keys = [];
+            const now = new Date().toISOString();
+
+            for (let i = 0; i < count; i++) {
+                const randomPart = Math.random().toString(36).substring(2, 8).toUpperCase();
+                const key = prefix ? `${prefix}-${randomPart}` : randomPart;
+
+                keys.push({
+                    "key": key,
+                    "duration_days": duration,
+                    "activated_on": null,
+                    "device_hash": "",        // Empty initially, will be set when activated
+                    "device_name": null,
+                    "processed_videos": 0
+                });
+            }
+
+            // Display
+            const jsonString = JSON.stringify(keys, null, 4);
+            document.getElementById('jsonOutput').textContent = jsonString;
+            document.getElementById('outputArea').style.display = 'block';
+        }
+
+        function copyToClipboard() {
+            const text = document.getElementById('jsonOutput').textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                alert("JSON copied to clipboard!");
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+            });
+        }
+    </script>
+</body>
+
+</html>
