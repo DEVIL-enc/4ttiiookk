@@ -151,17 +151,17 @@
         }
 
         .logo {
-            font-weight: 900;
-            font-size: 36px;
-            background: linear-gradient(90deg, #FF3EA5, #fff);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            letter-spacing: -0.5px;
-            filter: drop-shadow(0 0 10px rgba(255, 62, 165, 0.4));
-            display: inline-block;
-            font-family: 'Inter', sans-serif;
-        }
+    font-weight: 900;
+    font-size: 36px;
+    background: linear-gradient(90deg, #00E5FF, #00A3E0); /* أزرق */
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.5px;
+    filter: drop-shadow(0 0 15px rgba(0, 229, 255, 0.5)); /* نيون أزرق خفيف */
+    display: inline-block;
+    font-family: 'Inter', sans-serif;
+}
 
         .subtitle {
             text-align: center;
@@ -177,27 +177,27 @@
         }
 
         .form .input {
-            width: 100%;
-            background: var(--input-bg);
-            border: 1px solid #333;
-            padding: 15px 20px;
-            border-radius: 15px;
-            margin-top: 15px;
-            font-size: 16px;
-            text-align: center;
-            color: #ffffff;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            outline: none;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
+    width: 100%;
+    background: rgba(0, 229, 255, 0.2); /* أزرق فاتح */
+    border: 1px solid #00A3E0;          /* خط أزرق */
+    padding: 15px 20px;
+    border-radius: 15px;
+    margin-top: 15px;
+    font-size: 16px;
+    text-align: center;
+    color: #f8fafc;                     /* نص أبيض */
+    font-weight: 600;
+    transition: all 0.3s ease;
+    outline: none;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
 
-        .form .input:focus {
-            border-color: #FF3EA5;
-            background: #000000;
-            box-shadow: 0 0 0 4px rgba(255, 62, 165, 0.15);
-        }
+.form .input:focus {
+    border-color: #00E5FF;
+    background: rgba(0, 229, 255, 0.3); /* أزرق فاتح أكثر عند التركيز */
+    box-shadow: 0 0 8px rgba(0, 229, 255, 0.5); /* نيون أزرق */
+}
 
         .form .input::placeholder {
             color: #666;
@@ -212,46 +212,51 @@
         }
 
         .form .forgot-password a {
-            font-size: 13px;
-            color: #FF3EA5;
-            text-decoration: none;
-            cursor: pointer;
-            font-weight: 600;
-            transition: color 0.3s ease;
-            font-family: 'Cairo', sans-serif;
-        }
+    font-size: 13px;
+    color: #ffffff; /* أبيض */
+    text-decoration: none;
+    cursor: pointer;
+    font-weight: 600;
+    transition: color 0.3s ease;
+    font-family: 'Cairo', sans-serif;
+}
+
+.form .forgot-password a:hover {
+    color: #00E5FF; /* أزرق عند hover */
+}
 
         .form .forgot-password a:hover {
             color: #FF7ED4;
         }
 
         .form .login-button {
-            display: block;
-            width: 100%;
-            font-weight: bold;
-            background: var(--primary-gradient);
-            color: white;
-            padding-block: 15px;
-            margin: 20px auto;
-            border-radius: 20px;
-            box-shadow: 0 10px 25px -5px rgba(255, 62, 165, 0.4);
-            border: none;
-            transition: all 0.2s ease-in-out;
-            cursor: pointer;
-            font-size: 16px;
-            position: relative;
-            overflow: hidden;
-            font-family: 'Cairo', sans-serif;
-        }
+    display: block;
+    width: 100%;
+    font-weight: bold;
+    background: linear-gradient(135deg, #00E5FF 0%, #00A3E0 100%); /* أزرق gradient */
+    color: #f8fafc; /* نص أبيض */
+    padding-block: 15px;
+    margin: 20px auto;
+    border-radius: 20px;
+    box-shadow: 0 10px 25px -5px rgba(0, 229, 255, 0.4); /* نيون خفيف */
+    border: none;
+    transition: all 0.2s ease-in-out;
+    cursor: pointer;
+    font-size: 16px;
+    position: relative;
+    overflow: hidden;
+    font-family: 'Cairo', sans-serif;
+    text-shadow: 0 0 8px rgba(0, 229, 255, 0.7); /* نيون على النص */
+}
 
-        .form .login-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 15px 30px -5px rgba(255, 62, 165, 0.5);
-        }
+.form .login-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 20px rgba(0, 229, 255, 0.7); /* نيون أقوى عند hover */
+}
 
-        .form .login-button:active {
-            transform: translateY(0);
-        }
+.form .login-button:active {
+    transform: translateY(0);
+}
 
         .social-account-container {
             margin-top: 25px;
