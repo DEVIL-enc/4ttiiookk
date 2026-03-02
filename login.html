@@ -172,32 +172,28 @@
             opacity: 0.8;
         }
 
-        .form {
-            margin-top: 20px;
+        .form .input {
+            width: 100%;
+            background: var(--input-bg);
+            border: 1px solid #333;
+            padding: 15px 20px;
+            border-radius: 15px;
+            margin-top: 15px;
+            font-size: 16px;
+            text-align: center;
+            color: #ffffff;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            outline: none;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
-        .form .input {
-    width: 100%;
-    background: rgba(0, 229, 255, 0.2); /* أزرق فاتح */
-    border: 1px solid #00A3E0;          /* خط أزرق */
-    padding: 15px 20px;
-    border-radius: 15px;
-    margin-top: 15px;
-    font-size: 16px;
-    text-align: center;
-    color: #f8fafc;                     /* نص أبيض */
-    font-weight: 600;
-    transition: all 0.3s ease;
-    outline: none;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.form .input:focus {
-    border-color: #00E5FF;
-    background: rgba(0, 229, 255, 0.3); /* أزرق فاتح أكثر عند التركيز */
-    box-shadow: 0 0 8px rgba(0, 229, 255, 0.5); /* نيون أزرق */
-}
+        .form .input:focus {
+            border-color: #FF3EA5;
+            background: #000000;
+            box-shadow: 0 0 0 4px rgba(255, 62, 165, 0.15);
+        }
 
         .form .input::placeholder {
             color: #666;
