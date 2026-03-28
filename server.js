@@ -66,7 +66,7 @@ try {
 // ===================================
 
 const JSONBIN_API_KEY = "$2a$10$BV..TadGPZnl8Hs6rUs4h.kJFEnRDmK6YPqd8onbIEhfCKSixLI66";
-const JSONBIN_BIN_ID = "68f4d627ae596e708f1c952a";
+const JSONBIN_BIN_ID = "69c7236dc3097a1dd56a6836";
 
 // Helper: Fetch Licenses
 async function fetchLicenses() {
