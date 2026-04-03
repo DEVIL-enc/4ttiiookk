@@ -42,7 +42,47 @@ app.use('/lib', express.static(path.join(__dirname, 'lib'), {
     immutable: true
 }));
 
-// Serve other Static Files (Public) - AFTER /lib protection
+// ===================================
+// STATIC FILE ACCESS PROTECTION (FINAL STABLE)
+// ===================================
+app.use((req, res, next) => {
+
+    // السماح لكل API بدون أي فحص
+    if (req.path.startsWith("/api/")) {
+        return next();
+    }
+
+    const token = req.cookies.flowtik_token;
+
+    // أول دخول للموقع يفتح login مباشرة
+    if (req.path === "/" && !token) {
+        return res.sendFile(path.join(__dirname, "login.html"));
+    }
+
+    // السماح بصفحة login دائماً
+    if (req.path === "/login.html") {
+        return next();
+    }
+
+    // السماح بالدخول بعد تسجيل الدخول فقط
+    if (req.path === "/" && token) {
+        return res.sendFile(path.join(__dirname, "index.html"));
+    }
+
+    if (req.path === "/index.html" && token) {
+        return next();
+    }
+
+    // السماح بباقي الملفات فقط بعد تسجيل الدخول
+    if (token) {
+        return next();
+    }
+
+    return res.status(404).send("Cannot GET /login");
+
+});
+
+// Serve static files AFTER protection
 app.use(express.static(__dirname));
 
 // ===================================
