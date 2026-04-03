@@ -57,8 +57,23 @@ app.use((req, res, next) => {
 });
 
 // Explicitly serve lib files after check
+app.use('/lib', (req, res, next) => {
+
+    const token = req.cookies.flowtik_token;
+
+    if (!token) {
+        console.log(`[Server] Blocked access to ${req.originalUrl}`);
+        return res.status(403).json({
+            error: "Unauthorized access to engine"
+        });
+    }
+
+    next();
+
+});
+
 app.use('/lib', express.static(path.join(__dirname, 'lib'), {
-    maxAge: '1y', // Cache control for performance
+    maxAge: '1y',
     immutable: true
 }));
 
