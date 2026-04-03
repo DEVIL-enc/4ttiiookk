@@ -31,7 +31,12 @@ app.use((req, res, next) => {
     "/index.html",
     "/login.html",
     "/api/validate-license",
-    "/api/check-session"
+    "/api/check-session",
+    "/js/auth.js",
+    "/js/api.js",
+    "/js/config.js",
+    "/js/utils.js",
+    "/js/fingerprint.js"
 ];
 
     if (publicPaths.includes(req.path)) {
