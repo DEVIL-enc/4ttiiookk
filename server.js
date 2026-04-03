@@ -22,9 +22,10 @@ app.use((req, res, next) => {
 });
 
 // ===================================
-// 🛡️ SECURITY MIDDLEWARE (Engine)
+// 🛡️ SECURITY MIDDLEWARE (Engine) - MUST BE BEFORE STATIC
 // ===================================
 app.use('/lib', (req, res, next) => {
+    // Only protect FFmpeg core files
     if (req.path.includes('ffmpeg-core.wasm') || req.path.includes('ffmpeg-core.worker.js')) {
         const token = req.cookies.flowtik_token;
         if (!token) {
@@ -35,61 +36,30 @@ app.use('/lib', (req, res, next) => {
     next();
 });
 
+// Explicitly serve lib files after check
 app.use('/lib', express.static(path.join(__dirname, 'lib'), {
-    maxAge: '1y',
+    maxAge: '1y', // Cache control for performance
     immutable: true
 }));
-// ===================================
-// STATIC FILE ACCESS PROTECTION (SAFE)
-// ===================================
-app.use((req, res, next) => {
 
-    // السماح لهذه المسارات فقط
-    if (
-        req.path === "/" ||
-        req.path === "/login.html" ||
-        req.path === "/index.html" ||
-        req.path.startsWith("/api/")
-    ) {
-        return next();
-    }
-
-    // السماح للطلبات القادمة من داخل الموقع نفسه
-    const referer = req.headers.referer || "";
-const token = req.cookies.flowtik_token;
-
-if (
-    req.path === "/" ||
-    req.path === "/index.html" ||
-    (referer.includes(req.headers.host) && token)
-) {
-    return next();
-}
-
-    // منع أي وصول مباشر للملفات
-    return res.status(404).send("Cannot GET /login");
-
-});
-
-
-// Serve static files (public site)
+// Serve other Static Files (Public) - AFTER /lib protection
 app.use(express.static(__dirname));
 
 // ===================================
 // 🔍 DEBUGGING: Check files on startup
 // ===================================
+// Helper to debug file existence
 const fs = require('fs');
 try {
     const libPath = path.join(__dirname, 'lib');
     if (fs.existsSync(libPath)) {
         console.log("📂 Lib Directory Contents:", fs.readdirSync(libPath));
     } else {
-        console.error("❌ 'lib' directory DOES NOT EXIST.");
+        console.error("❌ 'lib' directory DOES NOT EXIST. Build script might have failed.");
     }
 } catch (e) {
     console.error("Debug Error:", e);
 }
-
 
 // ===================================
 // 🔑 API ROUTES (Shared Logic)
@@ -98,20 +68,22 @@ try {
 const JSONBIN_API_KEY = "$2a$10$BV..TadGPZnl8Hs6rUs4h.kJFEnRDmK6YPqd8onbIEhfCKSixLI66";
 const JSONBIN_BIN_ID = "69c7236dc3097a1dd56a6836";
 
+// Helper: Fetch Licenses
 async function fetchLicenses() {
+    if (!JSONBIN_API_KEY || !JSONBIN_BIN_ID) throw new Error("Missing Env Config");
 
-    const response = await fetch(
-        `https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}/latest`,
-        {
-            headers: { 'X-Master-Key': JSONBIN_API_KEY }
-        }
-    );
+    // Dynamic import for fetch in CommonJS if needed, or use native fetch in Node 18+
+    // Assuming Node 18+ (common in Render/Vercel)
+    const response = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}/latest`, {
+        headers: { 'X-Master-Key': JSONBIN_API_KEY }
+    });
 
     if (!response.ok) throw new Error("JSONBin Fetch Failed");
 
     const data = await response.json();
     let licenses = [];
 
+    // Normalize Structure
     if (Array.isArray(data.record)) licenses = data.record;
     else if (data.record && Array.isArray(data.record.licenses)) licenses = data.record.licenses;
     else if (Array.isArray(data.record?.licenses)) licenses = data.record.licenses;
@@ -120,39 +92,32 @@ async function fetchLicenses() {
         if (Array.isArray(Object.values(data.record)[0])) licenses = Object.values(data.record)[0];
         else licenses = [data.record];
     }
-
-    return { licenses, data };
+    return { licenses, data }; // Return entire data to preserve structure if needed
 }
 
-
-// Validate License
+// 1. Validate License
 app.post('/api/validate-license', async (req, res) => {
-
     try {
-
         const { licenseKey, deviceId } = req.body;
         const userAgent = req.headers['user-agent'] || 'Server';
 
-        if (!licenseKey || !deviceId)
-            return res.status(400).json({ valid: false, error: 'Missing Data' });
+        if (!licenseKey || !deviceId) return res.status(400).json({ valid: false, error: 'Missing Data' });
 
         const { licenses } = await fetchLicenses();
-
         const normalize = k => k ? k.trim().toUpperCase() : '';
         const index = licenses.findIndex(l => normalize(l.key) === normalize(licenseKey));
 
-        if (index === -1)
-            return res.json({ valid: false, error: 'invalidLicense', message: 'لايوجد اشتراك' });
+        if (index === -1) return res.json({ valid: false, error: 'invalidLicense', message: 'لايوجد اشتراك' });
 
         const license = licenses[index];
         const now = new Date();
 
+        // Activate
         if (!license.activated_on) {
             license.activated_on = now.toISOString();
             license.device_hash = deviceId;
             license.device_name = simplifyUserAgent(userAgent);
             license.processed_videos = 0;
-
             if (license.duration_days) {
                 const exp = new Date();
                 exp.setDate(now.getDate() + license.duration_days);
@@ -160,31 +125,28 @@ app.post('/api/validate-license', async (req, res) => {
             }
         }
 
-        if (license.device_hash && license.device_hash !== deviceId)
+        // Checks
+        if (license.device_hash && license.device_hash !== deviceId) {
             return res.json({ valid: false, error: 'deviceMismatch', message: 'المفتاح مرتبط بجهاز مختلف' });
-
-        if (license.expires_at && new Date(license.expires_at) < now)
+        }
+        if (license.expires_at && new Date(license.expires_at) < now) {
             return res.json({ valid: false, error: 'expired', message: 'انتهت صلاحية المفتاح ' });
+        }
 
+        // Update Usage
         license.processed_videos = (license.processed_videos || 0) + 1;
         licenses[index] = license;
 
+        // Save
         await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`, {
             method: 'PUT',
-            headers: {
-                'X-Master-Key': JSONBIN_API_KEY,
-                'Content-Type': 'application/json'
-            },
+            headers: { 'X-Master-Key': JSONBIN_API_KEY, 'Content-Type': 'application/json' },
             body: JSON.stringify({ licenses })
         });
 
+        // Token
         const token = Buffer.from(`${license.key}:${deviceId}:${Date.now()}`).toString('base64');
-
-        res.cookie('flowtik_token', token, {
-            httpOnly: true,
-            sameSite: 'strict',
-            maxAge: 24 * 60 * 60 * 1000
-        });
+        res.cookie('flowtik_token', token, { httpOnly: true, sameSite: 'strict', maxAge: 24 * 60 * 60 * 1000 });
 
         res.json({
             valid: true,
@@ -199,15 +161,50 @@ app.post('/api/validate-license', async (req, res) => {
         });
 
     } catch (e) {
-
         console.error(e);
         res.status(500).json({ valid: false, error: 'server_error' });
-
     }
+});
 
+// 2. Check Session
+app.post('/api/check-session', async (req, res) => {
+    try {
+        const { licenseKey, deviceId } = req.body;
+        if (!licenseKey || !deviceId) return res.status(400).json({ valid: false });
+
+        const { licenses } = await fetchLicenses();
+        const normalize = k => k ? k.trim().toUpperCase() : '';
+        const license = licenses.find(l => normalize(l.key) === normalize(licenseKey));
+
+        if (!license) return res.json({ valid: false, error: 'deleted' });
+        if (license.device_hash !== deviceId) return res.json({ valid: false, error: 'deviceMismatch' });
+        if (new Date(license.expires_at) < new Date()) return res.json({ valid: false, error: 'expired' });
+
+        // Renew Token
+        const token = Buffer.from(`${license.key}:${deviceId}:${Date.now()}`).toString('base64');
+        res.cookie('flowtik_token', token, { httpOnly: true, sameSite: 'strict', maxAge: 24 * 60 * 60 * 1000 });
+
+        res.json({
+            valid: true,
+            license: {
+                key: license.key,
+                plan: license.plan,
+                expiresAt: license.expires_at,
+                remainingDays: Math.ceil((new Date(license.expires_at) - new Date()) / (1000 * 60 * 60 * 24)),
+                processed_videos: license.processed_videos,
+                device_name: license.device_name,
+                activated_on: license.activated_on
+            }
+        });
+
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ valid: false, error: 'server_error' });
+    }
 });
 
 
+// Helper
 function simplifyUserAgent(ua) {
     if (/iPhone|iPad|iPod/.test(ua)) return 'Apple Device';
     if (/Android/.test(ua)) return 'Android Device';
@@ -215,7 +212,6 @@ function simplifyUserAgent(ua) {
     if (/Mac/.test(ua)) return 'Mac Computer';
     return 'Unknown Device';
 }
-
 
 // Start Server
 app.listen(PORT, () => {
