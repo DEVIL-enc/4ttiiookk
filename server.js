@@ -58,7 +58,10 @@ app.use((req, res, next) => {
     const referer = req.headers.referer || "";
 const token = req.cookies.flowtik_token;
 
-if (referer.includes(req.headers.host) && token) {
+if (
+    req.path === "/index.html" ||
+    (referer.includes(req.headers.host) && token)
+) {
     return next();
 }
 
