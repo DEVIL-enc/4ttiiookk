@@ -27,10 +27,11 @@ app.use((req, res, next) => {
 app.use((req, res, next) => {
 
     const publicPaths = [
-        "/login.html",
-        "/api/validate-license",
-        "/api/check-session"
-    ];
+    "/",
+    "/login.html",
+    "/api/validate-license",
+    "/api/check-session"
+];
 
     if (publicPaths.includes(req.path)) {
         return next();
@@ -158,7 +159,18 @@ app.post('/api/validate-license', async (req, res) => {
         });
 
         // Token
-        const token = Buffer.from(`${license.key}:${deviceId}:${Date.now()}`).toString('base64');
+        const payload = Buffer.from(JSON.stringify({
+    key: license.key,
+    deviceId,
+    expiresAt: Date.now() + 86400000
+})).toString("base64");
+
+const signature = require("crypto")
+    .createHmac("sha256", process.env.SESSION_SECRET)
+    .update(payload)
+    .digest("hex");
+
+const token = `${payload}.${signature}`;
         res.cookie('flowtik_token', token, { httpOnly: true, sameSite: 'strict', maxAge: 24 * 60 * 60 * 1000 });
 
         res.json({
@@ -194,7 +206,18 @@ app.post('/api/check-session', async (req, res) => {
         if (new Date(license.expires_at) < new Date()) return res.json({ valid: false, error: 'expired' });
 
         // Renew Token
-        const token = Buffer.from(`${license.key}:${deviceId}:${Date.now()}`).toString('base64');
+        const payload = Buffer.from(JSON.stringify({
+    key: license.key,
+    deviceId,
+    expiresAt: Date.now() + 86400000
+})).toString("base64");
+
+const signature = require("crypto")
+    .createHmac("sha256", process.env.SESSION_SECRET)
+    .update(payload)
+    .digest("hex");
+
+const token = `${payload}.${signature}`;
         res.cookie('flowtik_token', token, { httpOnly: true, sameSite: 'strict', maxAge: 24 * 60 * 60 * 1000 });
 
         res.json({
