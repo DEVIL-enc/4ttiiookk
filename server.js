@@ -43,7 +43,7 @@ app.use('/lib', express.static(path.join(__dirname, 'lib'), {
 }));
 // حماية الصفحة الرئيسية (index)
 // ===================================
-// 🛡️ FULL SECURITY PROTECTION BLOCK
+// 🛡️ FULL SECURITY PROTECTION BLOCK (FINAL)
 // ===================================
 app.use((req, res, next) => {
 
@@ -58,7 +58,7 @@ app.use((req, res, next) => {
         "/js/fingerprint.js"
     ];
 
-    // السماح لملفات تسجيل الدخول
+    // السماح بملفات تسجيل الدخول
     if (publicPaths.includes(req.path)) {
         return next();
     }
@@ -101,10 +101,24 @@ app.use((req, res, next) => {
         }
 
         const referer = req.headers.referer || "";
+        const origin = req.headers.origin || "";
 
-        if (!referer.includes("ds-resist.onrender.com")) {
+        // السماح فقط إذا الطلب جاء من داخل الموقع نفسه
+        if (
+            !referer.includes("ds-resist.onrender.com") &&
+            !origin.includes("ds-resist.onrender.com")
+        ) {
             return res.status(403).json({
                 error: "Direct download blocked"
+            });
+        }
+
+        const secFetchDest = req.headers["sec-fetch-dest"];
+
+        // منع التحميل اليدوي حتى للمستخدم المسجل
+        if (!secFetchDest || secFetchDest === "document") {
+            return res.status(403).json({
+                error: "Engine protected"
             });
         }
     }
