@@ -21,9 +21,34 @@ app.use((req, res, next) => {
     next();
 });
 
+// ===================================
+// 🛡️ SECURITY MIDDLEWARE (Engine)
+// ===================================
+app.use('/lib', (req, res, next) => {
+    if (
+        req.path.includes('ffmpeg-core.wasm') ||
+        req.path.includes('ffmpeg-core.worker.js')
+    ) {
+        const token = req.cookies.flowtik_token;
+        if (!token) {
+            console.log(`[Server] Blocked access to ${req.originalUrl}`);
+            return res.status(403).json({
+                error: "Unauthorized access to engine"
+            });
+        }
+    }
+    next();
+});
+
+// Explicitly serve lib files after check
+app.use('/lib', express.static(path.join(__dirname, 'lib'), {
+    maxAge: '1y',
+    immutable: true
+}));
+
 
 // ===================================
-// 🔒 GLOBAL SITE PROTECTION (NEW SAFE VERSION)
+// 🔒 SMART DOWNLOAD PROTECTION
 // ===================================
 app.use((req, res, next) => {
 
@@ -40,50 +65,36 @@ app.use((req, res, next) => {
         return next();
     }
 
-    // باقي الملفات تحتاج token
     const token = req.cookies.flowtik_token;
 
+    // إذا لا يوجد تسجيل دخول
     if (!token) {
-        return res.redirect("/login.html");
-    }
 
-    next();
-
-});
-
-
-// ===================================
-// 🛡️ SECURITY MIDDLEWARE (Engine) - MUST BE BEFORE STATIC
-// ===================================
-app.use('/lib', (req, res, next) => {
-
-    if (
-        req.path.includes('ffmpeg-core.wasm') ||
-        req.path.includes('ffmpeg-core.worker.js')
-    ) {
-
-        const token = req.cookies.flowtik_token;
-
-        if (!token) {
-            console.log(`[Server] Blocked access to ${req.originalUrl}`);
-            return res.status(403).json({
-                error: "Unauthorized access to engine"
-            });
+        if (req.path === "/index.html") {
+            return res.sendFile(path.join(__dirname, "login.html"));
         }
+
+        return res.status(404).send("Cannot GET /login");
+    }
+
+    // منع التحميل المباشر مثل curl أو a-shell
+    const referer = req.headers.referer;
+
+    if (!referer || !referer.includes(req.headers.host)) {
+
+        if (req.path === "/index.html") {
+            return res.sendFile(path.join(__dirname, "login.html"));
+        }
+
+        return res.status(404).send("Cannot GET /login");
     }
 
     next();
 
 });
 
-// Explicitly serve lib files after check
-app.use('/lib', express.static(path.join(__dirname, 'lib'), {
-    maxAge: '1y',
-    immutable: true
-}));
 
-
-// Serve other Static Files (Public) - AFTER /lib protection
+// Serve other Static Files AFTER protection
 app.use(express.static(__dirname));
 
 
@@ -91,21 +102,15 @@ app.use(express.static(__dirname));
 // 🔍 DEBUGGING: Check files on startup
 // ===================================
 const fs = require('fs');
-
 try {
-
     const libPath = path.join(__dirname, 'lib');
-
     if (fs.existsSync(libPath)) {
         console.log("📂 Lib Directory Contents:", fs.readdirSync(libPath));
     } else {
         console.error("❌ 'lib' directory DOES NOT EXIST. Build script might have failed.");
     }
-
 } catch (e) {
-
     console.error("Debug Error:", e);
-
 }
 
 
@@ -115,7 +120,6 @@ try {
 
 const JSONBIN_API_KEY = "$2a$10$BV..TadGPZnl8Hs6rUs4h.kJFEnRDmK6YPqd8onbIEhfCKSixLI66";
 const JSONBIN_BIN_ID = "69c7236dc3097a1dd56a6836";
-
 
 // Helper: Fetch Licenses
 async function fetchLicenses() {
@@ -148,7 +152,6 @@ async function fetchLicenses() {
     }
 
     return { licenses, data };
-
 }
 
 
@@ -158,7 +161,6 @@ app.post('/api/validate-license', async (req, res) => {
     try {
 
         const { licenseKey, deviceId } = req.body;
-
         const userAgent = req.headers['user-agent'] || 'Server';
 
         if (!licenseKey || !deviceId)
@@ -184,32 +186,24 @@ app.post('/api/validate-license', async (req, res) => {
             });
 
         const license = licenses[index];
-
         const now = new Date();
-
 
         if (!license.activated_on) {
 
             license.activated_on = now.toISOString();
-
             license.device_hash = deviceId;
-
             license.device_name = simplifyUserAgent(userAgent);
-
             license.processed_videos = 0;
 
             if (license.duration_days) {
 
                 const exp = new Date();
-
                 exp.setDate(now.getDate() + license.duration_days);
-
                 license.expires_at = exp.toISOString();
 
             }
 
         }
-
 
         if (
             license.device_hash &&
@@ -224,7 +218,6 @@ app.post('/api/validate-license', async (req, res) => {
 
         }
 
-
         if (
             license.expires_at &&
             new Date(license.expires_at) < now
@@ -238,13 +231,10 @@ app.post('/api/validate-license', async (req, res) => {
 
         }
 
-
         license.processed_videos =
             (license.processed_videos || 0) + 1;
 
-
         licenses[index] = license;
-
 
         await fetch(
             `https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`,
@@ -258,11 +248,9 @@ app.post('/api/validate-license', async (req, res) => {
             }
         );
 
-
         const token = Buffer.from(
             `${license.key}:${deviceId}:${Date.now()}`
         ).toString('base64');
-
 
         res.cookie(
             'flowtik_token',
@@ -273,7 +261,6 @@ app.post('/api/validate-license', async (req, res) => {
                 maxAge: 24 * 60 * 60 * 1000
             }
         );
-
 
         res.json({
             valid: true,
@@ -306,17 +293,10 @@ app.post('/api/validate-license', async (req, res) => {
 // Helper
 function simplifyUserAgent(ua) {
 
-    if (/iPhone|iPad|iPod/.test(ua))
-        return 'Apple Device';
-
-    if (/Android/.test(ua))
-        return 'Android Device';
-
-    if (/Windows/.test(ua))
-        return 'Windows PC';
-
-    if (/Mac/.test(ua))
-        return 'Mac Computer';
+    if (/iPhone|iPad|iPod/.test(ua)) return 'Apple Device';
+    if (/Android/.test(ua)) return 'Android Device';
+    if (/Windows/.test(ua)) return 'Windows PC';
+    if (/Mac/.test(ua)) return 'Mac Computer';
 
     return 'Unknown Device';
 
@@ -327,7 +307,6 @@ function simplifyUserAgent(ua) {
 app.listen(PORT, () => {
 
     console.log(`🚀 Server running on http://localhost:${PORT}`);
-
     console.log(`📂 Serving static files from ${__dirname}`);
 
 });
