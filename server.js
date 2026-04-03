@@ -7,12 +7,10 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-
 // Middleware
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors());
-
 
 // ===================================
 // SHARED ARRAY BUFFER HEADERS (Required for FFmpeg.wasm)
@@ -22,7 +20,6 @@ app.use((req, res, next) => {
     res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
     next();
 });
-
 
 // ===================================
 // SECURITY MIDDLEWARE (Engine)
@@ -37,7 +34,6 @@ app.use('/lib', (req, res, next) => {
         const token = req.cookies.flowtik_token;
 
         if (!token) {
-            console.log(`[Server] Blocked access to ${req.originalUrl}`);
             return res.status(403).json({
                 error: "Unauthorized access to engine"
             });
@@ -55,7 +51,7 @@ app.use('/lib', express.static(path.join(__dirname, 'lib'), {
 
 
 // ===================================
-// SMART DOWNLOAD PROTECTION (FIXED VERSION)
+// SMART DOWNLOAD PROTECTION
 // ===================================
 app.use((req, res, next) => {
 
@@ -74,22 +70,30 @@ app.use((req, res, next) => {
 
     const token = req.cookies.flowtik_token;
 
-    // إذا لا يوجد token
+    // إذا لا يوجد تسجيل دخول
     if (!token) {
 
-        // إذا طلب index مباشرة
         if (req.path === "/index.html") {
             return res.sendFile(path.join(__dirname, "login.html"));
         }
 
-        // باقي الملفات
         return res.status(404).send("Cannot GET /login");
     }
 
-    // منع التحميل المباشر مثل curl و a-shell
-    const referer = req.headers.referer;
+    // منع السحب عبر curl / a-shell / wget
+    const ua = (req.headers["user-agent"] || "").toLowerCase();
 
-    if (referer && !referer.includes(req.headers.host)) {
+    const blockedAgents = [
+        "curl",
+        "wget",
+        "python",
+        "axios",
+        "postman",
+        "scrapy",
+        "httpclient"
+    ];
+
+    if (blockedAgents.some(agent => ua.includes(agent))) {
 
         if (req.path === "/index.html") {
             return res.sendFile(path.join(__dirname, "login.html"));
@@ -273,7 +277,7 @@ app.post('/api/validate-license', async (req, res) => {
             token,
             {
                 httpOnly: true,
-                sameSite: 'strict',
+                sameSite: 'lax',
                 maxAge: 24 * 60 * 60 * 1000
             }
         );
