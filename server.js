@@ -78,6 +78,18 @@ app.use('/lib', express.static(path.join(__dirname, 'lib'), {
 }));
 
 // Serve other Static Files (Public) - AFTER /lib protection
+app.use((req, res, next) => {
+
+    if (req.path.startsWith("/lib/")) {
+        return res.status(403).json({
+            error: "Unauthorized access to engine"
+        });
+    }
+
+    next();
+
+});
+
 app.use(express.static(__dirname));
 
 // ===================================
