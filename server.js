@@ -39,55 +39,37 @@ app.use('/lib', express.static(path.join(__dirname, 'lib'), {
     maxAge: '1y',
     immutable: true
 }));
-
-
 // ===================================
-// 🔒 DOWNLOAD PROTECTION MIDDLEWARE
+// STATIC FILE ACCESS PROTECTION (SAFE)
 // ===================================
 app.use((req, res, next) => {
 
-    // السماح لهذه المسارات فقط بدون فحص
+    // السماح لهذه المسارات فقط
     if (
         req.path === "/" ||
         req.path === "/login.html" ||
+        req.path === "/index.html" ||
         req.path.startsWith("/api/")
     ) {
         return next();
     }
 
-    const token = req.cookies.flowtik_token;
-
-    // بدون تسجيل دخول
-    if (!token) {
-
-        if (req.path === "/index.html") {
-            return res.sendFile(path.join(__dirname, "login.html"));
-        }
-
-        return res.status(404).send("Cannot GET /login");
-    }
-
-    // منع فتح الملفات مباشرة بالرابط
+    // السماح للطلبات القادمة من داخل الموقع نفسه
     const referer = req.headers.referer || "";
+const token = req.cookies.flowtik_token;
 
-// اسمح بالدخول إلى index حتى لو referer غير موجود
-if (req.path !== "/index.html" && !referer.includes(req.headers.host)) {
+if (referer.includes(req.headers.host) && token) {
+    return next();
+}
 
-        if (req.path === "/index.html") {
-            return res.sendFile(path.join(__dirname, "login.html"));
-        }
-
-        return res.status(404).send("Cannot GET /login");
-    }
-
-    next();
+    // منع أي وصول مباشر للملفات
+    return res.status(404).send("Cannot GET /login");
 
 });
 
 
-// Serve static files AFTER protection
+// Serve static files (public site)
 app.use(express.static(__dirname));
-
 
 // ===================================
 // 🔍 DEBUGGING: Check files on startup
@@ -196,7 +178,7 @@ app.post('/api/validate-license', async (req, res) => {
 
         res.cookie('flowtik_token', token, {
             httpOnly: true,
-            sameSite: 'lax',
+            sameSite: 'strict',
             maxAge: 24 * 60 * 60 * 1000
         });
 
