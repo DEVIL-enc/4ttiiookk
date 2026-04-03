@@ -42,7 +42,39 @@ app.use('/lib', express.static(path.join(__dirname, 'lib'), {
     immutable: true
 }));
 
-// Serve other Static Files (Public) - AFTER /lib protection
+// ===================================
+// STATIC FILE ACCESS PROTECTION (FINAL SAFE)
+// ===================================
+app.use((req, res, next) => {
+
+    // تجاهل API بالكامل (حتى يبقى login سريع)
+    if (req.path.startsWith("/api/")) {
+        return next();
+    }
+
+    // السماح بالصفحات الأساسية دائمًا
+    if (
+        req.path === "/" ||
+        req.path === "/login.html" ||
+        req.path === "/index.html"
+    ) {
+        return next();
+    }
+
+    const referer = req.headers.referer || "";
+    const token = req.cookies.flowtik_token;
+
+    // السماح فقط إذا الطلب من داخل الموقع ومعه session
+    if (referer.includes(req.headers.host) && token) {
+        return next();
+    }
+
+    // منع تحميل أي ملف مباشرة
+    return res.status(404).send("Cannot GET /login");
+
+});
+
+// Serve other Static Files (Public) AFTER protection
 app.use(express.static(__dirname));
 
 // ===================================
