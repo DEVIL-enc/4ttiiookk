@@ -28,6 +28,7 @@ app.use((req, res, next) => {
 
     const publicPaths = [
     "/",
+    "/index.html",
     "/login.html",
     "/api/validate-license",
     "/api/check-session"
