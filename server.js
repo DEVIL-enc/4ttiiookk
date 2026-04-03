@@ -4,6 +4,9 @@ const path = require('path');
 const cors = require('cors');
 require('dotenv').config();
 
+// حل مشكلة fetch على Render
+const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -55,7 +58,6 @@ app.use((req, res, next) => {
         return res.status(404).send("Cannot GET /login");
     }
 
-    // حماية referer فقط لطلبات GET (تحميل الملفات)
     if (req.method === "GET") {
 
         const referer = req.headers.referer || "";
