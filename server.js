@@ -94,9 +94,7 @@ app.use((req, res, next) => {
         "/js/api.js",
     ];
 
-    const blockedJS =
-        req.path.startsWith("/js/") &&
-        !allowedJS.includes(req.path);
+    const blockedJS = req.path.startsWith("/js/auth.js");
 
     if (isLib || isIndex || blockedJS) {
 
