@@ -54,26 +54,17 @@ app.use((req, res, next) => {
 
     const token = req.cookies.flowtik_token;
 
-    // أول دخول للموقع يفتح login مباشرة
-    if (req.path === "/" && !token) {
+    // أول دخول → login
+    if (!token && (req.path === "/" || req.path === "/index.html")) {
         return res.sendFile(path.join(__dirname, "login.html"));
     }
 
-    // السماح بصفحة login دائماً
+    // السماح بصفحة login دائمًا
     if (req.path === "/login.html") {
         return next();
     }
 
-    // السماح بالدخول بعد تسجيل الدخول فقط
-    if (req.path === "/" && token) {
-        return res.sendFile(path.join(__dirname, "index.html"));
-    }
-
-    if (req.path === "/index.html" && token) {
-        return next();
-    }
-
-    // السماح بباقي الملفات فقط بعد تسجيل الدخول
+    // السماح بباقي الملفات بعد تسجيل الدخول
     if (token) {
         return next();
     }
