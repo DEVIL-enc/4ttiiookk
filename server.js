@@ -47,33 +47,33 @@ app.use('/lib', express.static(path.join(__dirname, 'lib'), {
 // ===================================
 app.use((req, res, next) => {
 
-    // تجاهل API بالكامل (حتى يبقى login سريع)
     if (req.path.startsWith("/api/")) {
-        return next();
-    }
-
-    // السماح بصفحة login فقط بدون session
-    if (req.path === "/login.html") {
         return next();
     }
 
     const token = req.cookies.flowtik_token;
     const referer = req.headers.referer || "";
 
-    // السماح بالدخول إلى index فقط إذا المستخدم مسجل دخول
-    if (
-        (req.path === "/" || req.path === "/index.html") &&
-        token
-    ) {
+    // فتح login عند دخول الموقع أول مرة
+    if (req.path === "/" && !token) {
+        return res.sendFile(path.join(__dirname, "login.html"));
+    }
+
+    // السماح بفتح login دائمًا
+    if (req.path === "/login.html") {
         return next();
     }
 
-    // السماح بالملفات فقط إذا الطلب من داخل الموقع ومع session
+    // السماح بفتح index بعد تسجيل الدخول فقط
+    if (req.path === "/index.html" && token) {
+        return next();
+    }
+
+    // السماح بباقي الملفات فقط من داخل الموقع ومع session
     if (referer.includes(req.headers.host) && token) {
         return next();
     }
 
-    // منع تحميل أي ملف مباشرة
     return res.status(404).send("Cannot GET /login");
 
 });
