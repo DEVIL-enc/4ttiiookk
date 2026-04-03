@@ -49,9 +49,9 @@ function verifyToken(token) {
     }
 }
 
-/* ===================================
-   GLOBAL SECURITY MIDDLEWARE
-=================================== */
+// ===================================
+// 🛡️ SECURITY MIDDLEWARE (Engine) - FINAL VERSION
+// ===================================
 app.use((req, res, next) => {
 
     const publicPaths = [
@@ -67,17 +67,19 @@ app.use((req, res, next) => {
         "/js/fingerprint.js"
     ];
 
-    if (publicPaths.includes(req.path)) {
+    // allow public routes safely
+    if (publicPaths.some(p => req.path.startsWith(p))) {
         return next();
     }
 
+    // protect engine files
     if (req.path.startsWith("/lib/")) {
 
         const token = req.cookies.flowtik_token;
-        const decoded = verifyToken(token);
 
-        if (!decoded) {
+        if (!token) {
             console.log("Blocked:", req.originalUrl);
+
             return res.status(403).json({
                 error: "Unauthorized access to engine"
             });
@@ -86,7 +88,6 @@ app.use((req, res, next) => {
 
     next();
 });
-
 /* ===================================
    BLOCK /LIB DIRECT ACCESS FIRST
 =================================== */
