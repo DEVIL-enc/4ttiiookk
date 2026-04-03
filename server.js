@@ -45,26 +45,29 @@ app.use('/lib', express.static(path.join(__dirname, 'lib'), {
 // ===================================
 // STATIC FILE ACCESS PROTECTION (FINAL SAFE)
 // ===================================
+// ===================================
+// STATIC FILE ACCESS PROTECTION (FIXED FINAL)
+// ===================================
 app.use((req, res, next) => {
 
-    if (req.originalUrl.startsWith("/api/")) {
+    // السماح بكل API بدون أي فحص
+    if (req.path.startsWith("/api/")) {
         return next();
     }
 
     const token = req.cookies.flowtik_token;
 
+    // أول دخول للموقع يفتح login مباشرة
     if (req.path === "/" && !token) {
         return res.sendFile(path.join(__dirname, "login.html"));
     }
 
+    // السماح بصفحة login دائمًا
     if (req.path === "/login.html") {
         return next();
     }
 
-    if (req.path === "/index.html" && token) {
-        return next();
-    }
-
+    // السماح بالدخول بعد تسجيل الدخول
     if (token) {
         return next();
     }
@@ -177,7 +180,7 @@ app.post('/api/validate-license', async (req, res) => {
 
         // Token
         const token = Buffer.from(`${license.key}:${deviceId}:${Date.now()}`).toString('base64');
-        res.cookie('flowtik_token', token, { httpOnly: true, sameSite: 'lax', maxAge: 24 * 60 * 60 * 1000 });
+        res.cookie('flowtik_token', token, { httpOnly: true, sameSite: 'strict', maxAge: 24 * 60 * 60 * 1000 });
 
         res.json({
             valid: true,
@@ -213,7 +216,7 @@ app.post('/api/check-session', async (req, res) => {
 
         // Renew Token
         const token = Buffer.from(`${license.key}:${deviceId}:${Date.now()}`).toString('base64');
-        res.cookie('flowtik_token', token, { httpOnly: true, sameSite: 'lax', maxAge: 24 * 60 * 60 * 1000 });
+        res.cookie('flowtik_token', token, { httpOnly: true, sameSite: 'strict', maxAge: 24 * 60 * 60 * 1000 });
 
         res.json({
             valid: true,
