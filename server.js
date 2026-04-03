@@ -196,7 +196,7 @@ app.post('/api/validate-license', async (req, res) => {
 
         res.cookie('flowtik_token', token, {
             httpOnly: true,
-            sameSite: 'strict',
+            sameSite: 'lax',
             maxAge: 24 * 60 * 60 * 1000
         });
 
