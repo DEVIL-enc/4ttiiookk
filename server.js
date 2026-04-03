@@ -70,7 +70,7 @@ app.use((req, res, next) => {
     }
 
     // السماح بباقي الملفات فقط من داخل الموقع ومع session
-    if (referer.includes(req.headers.host) && token) {
+    if (token) {
         return next();
     }
 
@@ -218,7 +218,7 @@ app.post('/api/check-session', async (req, res) => {
 
         // Renew Token
         const token = Buffer.from(`${license.key}:${deviceId}:${Date.now()}`).toString('base64');
-        res.cookie('flowtik_token', token, { httpOnly: true, sameSite: 'lax', maxAge: 24 * 60 * 60 * 1000 });
+        res.cookie('flowtik_token', token, { httpOnly: true, sameSite: 'strict', maxAge: 24 * 60 * 60 * 1000 });
 
         res.json({
             valid: true,
