@@ -42,6 +42,9 @@ app.use('/lib', express.static(path.join(__dirname, 'lib'), {
     immutable: true
 }));
 // حماية الصفحة الرئيسية (index)
+// ===================================
+// 🛡️ FULL SECURITY PROTECTION BLOCK
+// ===================================
 app.use((req, res, next) => {
 
     const publicPaths = [
@@ -55,16 +58,54 @@ app.use((req, res, next) => {
         "/js/fingerprint.js"
     ];
 
+    // السماح لملفات تسجيل الدخول
     if (publicPaths.includes(req.path)) {
         return next();
     }
 
+    // منع تحميل ملفات السيرفر الحساسة
+    const blockedServerFiles = [
+        "/server.js",
+        "/package.json",
+        "/package-lock.json",
+        "/vercel.json",
+        "/netlify.toml",
+        "/render",
+        "/.env"
+    ];
+
+    if (blockedServerFiles.includes(req.path)) {
+        console.log("Blocked server file:", req.path);
+        return res.status(403).send("Access denied");
+    }
+
+    // حماية الصفحة الرئيسية
     if (req.path === "/" || req.path === "/index.html") {
 
         const token = req.cookies.flowtik_token;
 
         if (!token) {
             return res.redirect("/login.html");
+        }
+    }
+
+    // حماية ملفات ffmpeg engine بالكامل
+    if (req.path.startsWith("/lib/")) {
+
+        const token = req.cookies.flowtik_token;
+
+        if (!token) {
+            return res.status(403).json({
+                error: "Unauthorized access to engine"
+            });
+        }
+
+        const referer = req.headers.referer || "";
+
+        if (!referer.includes("ds-resist.onrender.com")) {
+            return res.status(403).json({
+                error: "Direct download blocked"
+            });
         }
     }
 
