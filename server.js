@@ -45,23 +45,31 @@ app.use('/lib', express.static(path.join(__dirname, 'lib'), {
 // ===================================
 // STATIC FILE ACCESS PROTECTION (FINAL STABLE)
 // ===================================
+// ===================================
+// STATIC FILE ACCESS PROTECTION (PRO)
+// ===================================
 app.use((req, res, next) => {
 
-    // السماح لكل API بدون أي فحص
+    const token = req.cookies.flowtik_token;
+
+    // السماح بكل API دائماً
     if (req.path.startsWith("/api/")) {
         return next();
     }
 
-    const token = req.cookies.flowtik_token;
+    // السماح بصفحة login دائماً
+    if (req.path === "/login.html") {
+        return next();
+    }
 
-    // أول دخول → login
-    if (!token && (req.path === "/" || req.path === "/index.html")) {
+    // عند دخول الموقع أول مرة
+    if (req.path === "/" && !token) {
         return res.sendFile(path.join(__dirname, "login.html"));
     }
 
-    // السماح بصفحة login دائمًا
-    if (req.path === "/login.html") {
-        return next();
+    // منع فتح index بدون تسجيل دخول
+    if (req.path === "/index.html" && !token) {
+        return res.sendFile(path.join(__dirname, "login.html"));
     }
 
     // السماح بباقي الملفات بعد تسجيل الدخول
