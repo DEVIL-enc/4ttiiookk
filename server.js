@@ -42,46 +42,47 @@ app.use('/lib', express.static(path.join(__dirname, 'lib'), {
     immutable: true
 }));
 
-// ===================================
-// STATIC FILE ACCESS PROTECTION (FINAL STABLE)
-// ===================================
-// ===================================
-// STATIC FILE ACCESS PROTECTION (PRO)
-// ===================================
-// ===================================
-// FINAL STABLE STATIC PROTECTION
-// ===================================
 app.use((req, res, next) => {
 
     const token = req.cookies.flowtik_token;
 
-    // السماح لكل API دائماً
+    // السماح للـ API دائماً
     if (req.path.startsWith("/api/")) {
         return next();
     }
 
-    // السماح بالدخول للموقع أول مرة
-    if (
-        req.path === "/" ||
-        req.path === "/login.html" ||
-        req.path === "/index.html"
-    ) {
+    // السماح بصفحة login دائماً
+    if (req.path === "/login.html") {
         return next();
     }
 
-    // حماية lib (محرك ffmpeg)
+    // دخول الموقع الرئيسي
+    if (req.path === "/") {
+        if (!token) {
+            return res.sendFile(path.join(__dirname, "login.html"));
+        }
+        return res.sendFile(path.join(__dirname, "index.html"));
+    }
+
+    // منع index بدون تسجيل دخول
+    if (req.path === "/index.html" && !token) {
+        return res.sendFile(path.join(__dirname, "login.html"));
+    }
+
+    // حماية lib
     if (req.path.startsWith("/lib/") && !token) {
         return res.status(403).send("Unauthorized");
     }
 
-    // حماية باقي الملفات بدون session
-    if (!token) {
-        return res.status(404).send("Cannot GET /login");
+    // السماح بعد تسجيل الدخول
+    if (token) {
+        return next();
     }
 
-    next();
+    return res.status(404).send("Cannot GET /login");
 
 });
+
 
 // تشغيل الملفات بعد الحماية
 app.use(express.static(__dirname));
