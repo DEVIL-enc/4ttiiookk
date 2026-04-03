@@ -25,15 +25,26 @@ app.use((req, res, next) => {
 // 🛡️ SECURITY MIDDLEWARE (Engine) - MUST BE BEFORE STATIC
 // ===================================
 app.use('/lib', (req, res, next) => {
-    // Only protect FFmpeg core files
-    if (req.path.includes('ffmpeg-core.wasm') || req.path.includes('ffmpeg-core.worker.js')) {
+
+    if (
+        req.path.includes('ffmpeg-core.wasm') ||
+        req.path.includes('ffmpeg-core.worker.js')
+    ) {
+
         const token = req.cookies.flowtik_token;
-        if (!token) {
+        const decoded = token ? verifyToken(token) : null;
+
+        if (!decoded) {
             console.log(`[Server] Blocked access to ${req.originalUrl}`);
-            return res.status(403).json({ error: "Unauthorized access to engine" });
+            return res
+                .status(403)
+                .json({ error: "Unauthorized access to engine" });
         }
+
     }
+
     next();
+
 });
 
 // Explicitly serve lib files after check
@@ -94,9 +105,15 @@ app.use((req, res, next) => {
         "/js/api.js",
     ];
 
-    const blockedJS = req.path.startsWith("/js/auth.js");
+    const blockedJS = req.path === "/js/auth.js";
 
-    if (isLib || isIndex || blockedJS) {
+    if (
+    isLib ||
+    isIndex ||
+    blockedJS ||
+    req.path.includes("ffmpeg-core.wasm") ||
+    req.path.includes("ffmpeg-core.worker.js")
+) {
 
         const token = req.cookies.flowtik_token;
         const decoded = token ? verifyToken(token) : null;
