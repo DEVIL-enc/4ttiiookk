@@ -70,7 +70,8 @@ app.use((req, res, next) => {
     // منع فتح الملفات مباشرة بالرابط
     const referer = req.headers.referer || "";
 
-    if (!referer.includes(req.headers.host)) {
+// اسمح بالدخول إلى index حتى لو referer غير موجود
+if (req.path !== "/index.html" && !referer.includes(req.headers.host)) {
 
         if (req.path === "/index.html") {
             return res.sendFile(path.join(__dirname, "login.html"));
