@@ -1,1 +1,299 @@
-const _0x4507a9=_0x381f;(function(_0x538fc3,_0x488763){const _0x205947=_0x381f,_0x1320db=_0x538fc3();while(!![]){try{const _0x36e2ae=parseInt(_0x205947(0xa3))/0x1*(parseInt(_0x205947(0x91))/0x2)+parseInt(_0x205947(0xbd))/0x3+parseInt(_0x205947(0x92))/0x4+parseInt(_0x205947(0x94))/0x5+parseInt(_0x205947(0xcc))/0x6*(-parseInt(_0x205947(0xcb))/0x7)+-parseInt(_0x205947(0xab))/0x8*(-parseInt(_0x205947(0xaf))/0x9)+-parseInt(_0x205947(0xb3))/0xa*(parseInt(_0x205947(0x8a))/0xb);if(_0x36e2ae===_0x488763)break;else _0x1320db['push'](_0x1320db['shift']());}catch(_0x1d4ddd){_0x1320db['push'](_0x1320db['shift']());}}}(_0x18a1,0xc7558));const express=require(_0x4507a9(0x80)),cookieParser=require(_0x4507a9(0x9e)),path=require(_0x4507a9(0xbf)),cors=require('cors');function _0x381f(_0x527daa,_0x384b06){_0x527daa=_0x527daa-0x7e;const _0x18a113=_0x18a1();let _0x381fdc=_0x18a113[_0x527daa];return _0x381fdc;}function _0x18a1(){const _0x2a9ca4=['find','log','X-Frame-Options','scrapy','deviceMismatch','toString','same-origin','1533939gkSSav','expired','path','Cross-Origin-Embedder-Policy','use','📂\x20Lib\x20Directory\x20Contents:','isArray','expires_at','/api/validate-license','https://api.jsonbin.io/v3/b/','curl','trim','error','axios','3175263TdpMKs','6zuHEpy','post','no-store','server_error','key','httpclient','record','express','body','$2a$10$BV..TadGPZnl8Hs6rUs4h.kJFEnRDmK6YPqd8onbIEhfCKSixLI66','nosniff','/login.html','69c7236dc3097a1dd56a6836','/api/check-session','Unauthorized\x20access\x20to\x20engine','require-corp','host','737wqKBca','device_hash','config','send','/lib','base64','cookies','1046482ImXkJc','4047964EYrsCu','/latest','1737660AChJGg','Cross-Origin-Opener-Policy','Cannot\x20GET\x20/login','headers','includes','/index.html','Cache-Control','node-fetch','toUpperCase','join','cookie-parser','referer','flowtik_token','cookie','json','3vNsGZK','❌\x20\x27lib\x27\x20directory\x20DOES\x20NOT\x20EXIST.','setHeader','strict','wget','static','postman','lib','232HKzFTw','X-Content-Type-Options','status','from','47529NwBQmQ','python','licenses','some','346810vSntHz','now','listen'];_0x18a1=function(){return _0x2a9ca4;};return _0x18a1();}require('dotenv')[_0x4507a9(0x8c)]();const app=express(),PORT=process.env.PORT||0xbb8;app[_0x4507a9(0xc1)](express[_0x4507a9(0xa2)]()),app['use'](cookieParser()),app[_0x4507a9(0xc1)](cors()),app[_0x4507a9(0xc1)]((_0x563e16,_0x392d4d,_0x583eb8)=>{const _0x2ab079=_0x4507a9;_0x392d4d['setHeader'](_0x2ab079(0x95),_0x2ab079(0xbc)),_0x392d4d[_0x2ab079(0xa5)](_0x2ab079(0xc0),_0x2ab079(0x88)),_0x392d4d['setHeader'](_0x2ab079(0x9a),_0x2ab079(0xce)),_0x392d4d['setHeader'](_0x2ab079(0xb8),'DENY'),_0x392d4d['setHeader'](_0x2ab079(0xac),_0x2ab079(0x83)),_0x583eb8();}),app[_0x4507a9(0xc1)]((_0x4b6687,_0x2cdba2,_0x302264)=>{const _0x2ed5cf=_0x4507a9,_0x6d0677=['/',_0x2ed5cf(0x99),_0x2ed5cf(0x84),'/api/validate-license',_0x2ed5cf(0x86)];if(_0x6d0677['includes'](_0x4b6687['path']))return _0x302264();const _0xea7f53=_0x4b6687[_0x2ed5cf(0x90)][_0x2ed5cf(0xa0)];if(!_0xea7f53)return _0x2cdba2[_0x2ed5cf(0xad)](0x194)[_0x2ed5cf(0x8d)](_0x2ed5cf(0x96));const _0x3721d0=_0x4b6687[_0x2ed5cf(0x97)][_0x2ed5cf(0x9f)]||'',_0x55c912=_0x4b6687[_0x2ed5cf(0x97)][_0x2ed5cf(0x89)]||'';if(!_0x3721d0[_0x2ed5cf(0x98)](_0x55c912))return _0x2cdba2[_0x2ed5cf(0xad)](0x194)[_0x2ed5cf(0x8d)](_0x2ed5cf(0x96));const _0x65dbfe=(_0x4b6687[_0x2ed5cf(0x97)]['user-agent']||'')['toLowerCase'](),_0x6a5022=[_0x2ed5cf(0xc7),_0x2ed5cf(0xa7),_0x2ed5cf(0xb0),_0x2ed5cf(0x9b),_0x2ed5cf(0xca),_0x2ed5cf(0xa9),_0x2ed5cf(0xb9),_0x2ed5cf(0x7e)];if(_0x6a5022[_0x2ed5cf(0xb2)](_0xfe303c=>_0x65dbfe['includes'](_0xfe303c)))return _0x2cdba2['status'](0x194)[_0x2ed5cf(0x8d)](_0x2ed5cf(0x96));_0x302264();}),app[_0x4507a9(0xc1)]('/lib',(_0x2c6a07,_0x31d3bc,_0x9d2648)=>{const _0x44faa8=_0x4507a9,_0x105054=_0x2c6a07[_0x44faa8(0x90)]['flowtik_token'];if(!_0x105054)return _0x31d3bc['status'](0x193)[_0x44faa8(0xa2)]({'error':_0x44faa8(0x87)});_0x9d2648();}),app[_0x4507a9(0xc1)](_0x4507a9(0x8e),express[_0x4507a9(0xa8)](path[_0x4507a9(0x9d)](__dirname,'lib'),{'maxAge':'1y','immutable':!![]})),app[_0x4507a9(0xc1)](express[_0x4507a9(0xa8)](__dirname));const fs=require('fs');try{const libPath=path[_0x4507a9(0x9d)](__dirname,_0x4507a9(0xaa));fs['existsSync'](libPath)?console[_0x4507a9(0xb7)](_0x4507a9(0xc2),fs['readdirSync'](libPath)):console[_0x4507a9(0xc9)](_0x4507a9(0xa4));}catch(_0x37c7f6){console[_0x4507a9(0xc9)]('Debug\x20Error:',_0x37c7f6);}const JSONBIN_API_KEY=_0x4507a9(0x82),JSONBIN_BIN_ID=_0x4507a9(0x85);async function fetchLicenses(){const _0x2d44ee=_0x4507a9,_0x943951=await fetch(_0x2d44ee(0xc6)+JSONBIN_BIN_ID+_0x2d44ee(0x93),{'headers':{'X-Master-Key':JSONBIN_API_KEY}}),_0x2eff41=await _0x943951[_0x2d44ee(0xa2)]();let _0x5c9139=[];if(Array[_0x2d44ee(0xc3)](_0x2eff41[_0x2d44ee(0x7f)]))_0x5c9139=_0x2eff41['record'];else{if(_0x2eff41[_0x2d44ee(0x7f)]?.[_0x2d44ee(0xb1)])_0x5c9139=_0x2eff41[_0x2d44ee(0x7f)][_0x2d44ee(0xb1)];else{if(Array[_0x2d44ee(0xc3)](_0x2eff41))_0x5c9139=_0x2eff41;else{if(_0x2eff41['record'])_0x5c9139=[_0x2eff41[_0x2d44ee(0x7f)]];}}}return{'licenses':_0x5c9139};}app[_0x4507a9(0xcd)](_0x4507a9(0xc5),async(_0x3f98b3,_0x22f9c0)=>{const _0x4926a2=_0x4507a9;try{const {licenseKey:_0x346665,deviceId:_0x3c2846}=_0x3f98b3[_0x4926a2(0x81)];if(!_0x346665||!_0x3c2846)return _0x22f9c0['json']({'valid':![]});const {licenses:_0x6e634a}=await fetchLicenses(),_0x284e0c=_0x6e634a[_0x4926a2(0xb6)](_0x5f24b3=>_0x5f24b3[_0x4926a2(0xd0)]['trim']()[_0x4926a2(0x9c)]()===_0x346665['trim']()[_0x4926a2(0x9c)]());if(!_0x284e0c)return _0x22f9c0['json']({'valid':![],'error':'invalidLicense'});if(_0x284e0c[_0x4926a2(0x8b)]&&_0x284e0c[_0x4926a2(0x8b)]!==_0x3c2846)return _0x22f9c0['json']({'valid':![],'error':_0x4926a2(0xba)});if(_0x284e0c['expires_at']&&new Date(_0x284e0c[_0x4926a2(0xc4)])<new Date())return _0x22f9c0['json']({'valid':![],'error':_0x4926a2(0xbe)});const _0x1fe00f=Buffer[_0x4926a2(0xae)](_0x284e0c['key']+':'+_0x3c2846+':'+Date[_0x4926a2(0xb4)]())['toString']('base64');_0x22f9c0[_0x4926a2(0xa1)](_0x4926a2(0xa0),_0x1fe00f,{'httpOnly':!![],'sameSite':_0x4926a2(0xa6),'maxAge':0x18*0x3c*0x3c*0x3e8}),_0x22f9c0['json']({'valid':!![]});}catch(_0x248ba8){console['error'](_0x248ba8),_0x22f9c0[_0x4926a2(0xa2)]({'valid':![],'error':_0x4926a2(0xcf)});}}),app['post'](_0x4507a9(0x86),async(_0x538265,_0x5e7538)=>{const _0x54b0b6=_0x4507a9;try{const {licenseKey:_0x3e7669,deviceId:_0x542efc}=_0x538265[_0x54b0b6(0x81)];if(!_0x3e7669||!_0x542efc)return _0x5e7538['json']({'valid':![]});const {licenses:_0x33bbdd}=await fetchLicenses(),_0x44dc5e=_0x33bbdd['find'](_0xd01754=>_0xd01754['key'][_0x54b0b6(0xc8)]()[_0x54b0b6(0x9c)]()===_0x3e7669[_0x54b0b6(0xc8)]()['toUpperCase']());if(!_0x44dc5e)return _0x5e7538[_0x54b0b6(0xa2)]({'valid':![]});if(_0x44dc5e[_0x54b0b6(0x8b)]!==_0x542efc)return _0x5e7538['json']({'valid':![]});if(new Date(_0x44dc5e[_0x54b0b6(0xc4)])<new Date())return _0x5e7538[_0x54b0b6(0xa2)]({'valid':![]});const _0x35c643=Buffer[_0x54b0b6(0xae)](_0x44dc5e[_0x54b0b6(0xd0)]+':'+_0x542efc+':'+Date[_0x54b0b6(0xb4)]())[_0x54b0b6(0xbb)](_0x54b0b6(0x8f));_0x5e7538[_0x54b0b6(0xa1)](_0x54b0b6(0xa0),_0x35c643,{'httpOnly':!![],'sameSite':_0x54b0b6(0xa6),'maxAge':0x18*0x3c*0x3c*0x3e8}),_0x5e7538[_0x54b0b6(0xa2)]({'valid':!![]});}catch(_0xe65548){console[_0x54b0b6(0xc9)](_0xe65548),_0x5e7538[_0x54b0b6(0xa2)]({'valid':![]});}}),app[_0x4507a9(0xc1)]((_0x3e86ff,_0xef6164)=>{const _0xe35e5a=_0x4507a9;_0xef6164[_0xe35e5a(0xad)](0x194)[_0xe35e5a(0x8d)](_0xe35e5a(0x96));}),app[_0x4507a9(0xb5)](PORT,()=>{const _0x396767=_0x4507a9;console[_0x396767(0xb7)]('🚀\x20Server\x20running\x20on\x20port\x20'+PORT);});
+const express = require('express');
+const cookieParser = require('cookie-parser');
+const path = require('path');
+const cors = require('cors');
+require('dotenv').config();
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+
+// =============================
+// BASIC MIDDLEWARE
+// =============================
+app.use(express.json());
+app.use(cookieParser());
+app.use(cors());
+
+
+// =============================
+// SECURITY HEADERS
+// =============================
+app.use((req, res, next) => {
+
+    res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+    res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
+
+    res.setHeader("Cache-Control", "no-store");
+    res.setHeader("X-Frame-Options", "DENY");
+    res.setHeader("X-Content-Type-Options", "nosniff");
+
+    next();
+
+});
+
+
+// =============================
+// GLOBAL ACCESS PROTECTION
+// =============================
+app.use((req, res, next) => {
+
+    const allowedPaths = [
+        "/",
+        "/index.html",
+        "/login.html",
+        "/api/validate-license",
+        "/api/check-session"
+    ];
+
+    if (allowedPaths.includes(req.path)) {
+        return next();
+    }
+
+    const token = req.cookies.flowtik_token;
+
+    if (!token) {
+        return res.status(404).send("Cannot GET /login");
+    }
+
+    const referer = req.headers.referer || "";
+    const host = req.headers.host || "";
+
+    if (!referer.includes(host)) {
+        return res.status(404).send("Cannot GET /login");
+    }
+
+    const userAgent = (req.headers["user-agent"] || "").toLowerCase();
+
+    const blockedAgents = [
+        "curl",
+        "wget",
+        "python",
+        "node-fetch",
+        "axios",
+        "postman",
+        "scrapy",
+        "httpclient"
+    ];
+
+    if (blockedAgents.some(a => userAgent.includes(a))) {
+        return res.status(404).send("Cannot GET /login");
+    }
+
+    next();
+
+});
+
+
+// =============================
+// ENGINE PROTECTION (lib)
+// =============================
+app.use('/lib', (req, res, next) => {
+
+    const token = req.cookies.flowtik_token;
+
+    if (!token) {
+        return res.status(403).json({
+            error: "Unauthorized access to engine"
+        });
+    }
+
+    next();
+
+});
+
+app.use('/lib', express.static(path.join(__dirname, 'lib'), {
+    maxAge: '1y',
+    immutable: true
+}));
+
+
+// =============================
+// STATIC FILES (PROTECTED)
+// =============================
+app.use(express.static(__dirname));
+
+
+// =============================
+// DEBUG CHECK
+// =============================
+const fs = require('fs');
+
+try {
+
+    const libPath = path.join(__dirname, 'lib');
+
+    if (fs.existsSync(libPath)) {
+        console.log("📂 Lib Directory Contents:", fs.readdirSync(libPath));
+    } else {
+        console.error("❌ 'lib' directory DOES NOT EXIST.");
+    }
+
+} catch (e) {
+
+    console.error("Debug Error:", e);
+
+}
+
+
+// =============================
+// LICENSE API CONFIG
+// =============================
+const JSONBIN_API_KEY = "$2a$10$BV..TadGPZnl8Hs6rUs4h.kJFEnRDmK6YPqd8onbIEhfCKSixLI66";
+const JSONBIN_BIN_ID = "69c7236dc3097a1dd56a6836";
+
+
+// =============================
+// FETCH LICENSES
+// =============================
+async function fetchLicenses() {
+
+    const response = await fetch(
+        `https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}/latest`,
+        {
+            headers: { 'X-Master-Key': JSONBIN_API_KEY }
+        }
+    );
+
+    const data = await response.json();
+
+    let licenses = [];
+
+    if (Array.isArray(data.record)) licenses = data.record;
+    else if (data.record?.licenses) licenses = data.record.licenses;
+    else if (Array.isArray(data)) licenses = data;
+    else if (data.record) licenses = [data.record];
+
+    return { licenses };
+
+}
+
+
+// =============================
+// VALIDATE LICENSE
+// =============================
+app.post('/api/validate-license', async (req, res) => {
+
+    try {
+
+        const { licenseKey, deviceId } = req.body;
+
+        if (!licenseKey || !deviceId)
+            return res.json({ valid: false });
+
+        const { licenses } = await fetchLicenses();
+
+        const license = licenses.find(
+            l => l.key.trim().toUpperCase() === licenseKey.trim().toUpperCase()
+        );
+
+        if (!license)
+            return res.json({
+                valid: false,
+                error: "invalidLicense"
+            });
+
+        if (license.device_hash && license.device_hash !== deviceId)
+            return res.json({
+                valid: false,
+                error: "deviceMismatch"
+            });
+
+        if (license.expires_at && new Date(license.expires_at) < new Date())
+            return res.json({
+                valid: false,
+                error: "expired"
+            });
+
+        const token = Buffer.from(
+            `${license.key}:${deviceId}:${Date.now()}`
+        ).toString("base64");
+
+        res.cookie("flowtik_token", token, {
+            httpOnly: true,
+            sameSite: "strict",
+            maxAge: 24 * 60 * 60 * 1000
+        });
+
+        res.json({ valid: true });
+
+    } catch (e) {
+
+        console.error(e);
+
+        res.json({
+            valid: false,
+            error: "server_error"
+        });
+
+    }
+
+});
+
+
+// =============================
+// SESSION CHECK
+// =============================
+app.post('/api/check-session', async (req, res) => {
+
+    try {
+
+        const { licenseKey, deviceId } = req.body;
+
+        if (!licenseKey || !deviceId)
+            return res.json({ valid: false });
+
+        const { licenses } = await fetchLicenses();
+
+        const license = licenses.find(
+            l => l.key.trim().toUpperCase() === licenseKey.trim().toUpperCase()
+        );
+
+        if (!license)
+            return res.json({ valid: false });
+
+        if (license.device_hash !== deviceId)
+            return res.json({ valid: false });
+
+        if (new Date(license.expires_at) < new Date())
+            return res.json({ valid: false });
+
+        const token = Buffer.from(
+            `${license.key}:${deviceId}:${Date.now()}`
+        ).toString("base64");
+
+        res.cookie("flowtik_token", token, {
+            httpOnly: true,
+            sameSite: "strict",
+            maxAge: 24 * 60 * 60 * 1000
+        });
+
+        res.json({ valid: true });
+
+    } catch (e) {
+
+        console.error(e);
+
+        res.json({ valid: false });
+
+    }
+
+});
+
+
+// =============================
+// FINAL BLOCKER
+// =============================
+app.use((req, res) => {
+    res.status(404).send("Cannot GET /login");
+});
+
+
+// =============================
+// START SERVER
+// =============================
+app.listen(PORT, () => {
+
+    console.log(`🚀 Server running on port ${PORT}`);
+
+});
