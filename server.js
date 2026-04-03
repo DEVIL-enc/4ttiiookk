@@ -47,29 +47,24 @@ app.use('/lib', express.static(path.join(__dirname, 'lib'), {
 // ===================================
 app.use((req, res, next) => {
 
-    if (req.path.startsWith("/api/")) {
+    if (req.originalUrl.startsWith("/api/")) {
         return next();
     }
 
     const token = req.cookies.flowtik_token;
-    const referer = req.headers.referer || "";
 
-    // فتح login عند دخول الموقع أول مرة
     if (req.path === "/" && !token) {
         return res.sendFile(path.join(__dirname, "login.html"));
     }
 
-    // السماح بفتح login دائمًا
     if (req.path === "/login.html") {
         return next();
     }
 
-    // السماح بفتح index بعد تسجيل الدخول فقط
     if (req.path === "/index.html" && token) {
         return next();
     }
 
-    // السماح بباقي الملفات فقط من داخل الموقع ومع session
     if (token) {
         return next();
     }
@@ -182,7 +177,7 @@ app.post('/api/validate-license', async (req, res) => {
 
         // Token
         const token = Buffer.from(`${license.key}:${deviceId}:${Date.now()}`).toString('base64');
-        res.cookie('flowtik_token', token, { httpOnly: true, sameSite: 'strict', maxAge: 24 * 60 * 60 * 1000 });
+        res.cookie('flowtik_token', token, { httpOnly: true, sameSite: 'lax', maxAge: 24 * 60 * 60 * 1000 });
 
         res.json({
             valid: true,
@@ -218,7 +213,7 @@ app.post('/api/check-session', async (req, res) => {
 
         // Renew Token
         const token = Buffer.from(`${license.key}:${deviceId}:${Date.now()}`).toString('base64');
-        res.cookie('flowtik_token', token, { httpOnly: true, sameSite: 'strict', maxAge: 24 * 60 * 60 * 1000 });
+        res.cookie('flowtik_token', token, { httpOnly: true, sameSite: 'lax', maxAge: 24 * 60 * 60 * 1000 });
 
         res.json({
             valid: true,
