@@ -13,7 +13,7 @@ app.use(cookieParser());
 app.use(cors());
 
 // ===================================
-// 🌍 SHARED ARRAY BUFFER HEADERS (Required for FFmpeg.wasm)
+// SHARED ARRAY BUFFER HEADERS (Required for FFmpeg.wasm)
 // ===================================
 app.use((req, res, next) => {
     res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
@@ -22,14 +22,17 @@ app.use((req, res, next) => {
 });
 
 // ===================================
-// 🛡️ SECURITY MIDDLEWARE (Engine)
+// SECURITY MIDDLEWARE (Engine)
 // ===================================
 app.use('/lib', (req, res, next) => {
+
     if (
         req.path.includes('ffmpeg-core.wasm') ||
         req.path.includes('ffmpeg-core.worker.js')
     ) {
+
         const token = req.cookies.flowtik_token;
+
         if (!token) {
             console.log(`[Server] Blocked access to ${req.originalUrl}`);
             return res.status(403).json({
@@ -37,10 +40,12 @@ app.use('/lib', (req, res, next) => {
             });
         }
     }
+
     next();
+
 });
 
-// Explicitly serve lib files after check
+// Serve lib files after protection
 app.use('/lib', express.static(path.join(__dirname, 'lib'), {
     maxAge: '1y',
     immutable: true
@@ -48,7 +53,7 @@ app.use('/lib', express.static(path.join(__dirname, 'lib'), {
 
 
 // ===================================
-// 🔒 SMART DOWNLOAD PROTECTION
+// SMART DOWNLOAD PROTECTION
 // ===================================
 app.use((req, res, next) => {
 
@@ -80,7 +85,8 @@ app.use((req, res, next) => {
     // منع التحميل المباشر مثل curl أو a-shell
     const referer = req.headers.referer;
 
-    if (!referer || !referer.includes(req.headers.host)) {
+    // هنا التصحيح النهائي (لا نمنع إذا referer غير موجود)
+    if (referer && !referer.includes(req.headers.host)) {
 
         if (req.path === "/index.html") {
             return res.sendFile(path.join(__dirname, "login.html"));
@@ -93,33 +99,38 @@ app.use((req, res, next) => {
 
 });
 
-
 // Serve other Static Files AFTER protection
 app.use(express.static(__dirname));
 
 
 // ===================================
-// 🔍 DEBUGGING: Check files on startup
+// DEBUGGING: Check files on startup
 // ===================================
 const fs = require('fs');
+
 try {
+
     const libPath = path.join(__dirname, 'lib');
+
     if (fs.existsSync(libPath)) {
         console.log("📂 Lib Directory Contents:", fs.readdirSync(libPath));
     } else {
-        console.error("❌ 'lib' directory DOES NOT EXIST. Build script might have failed.");
+        console.error("❌ 'lib' directory DOES NOT EXIST.");
     }
+
 } catch (e) {
+
     console.error("Debug Error:", e);
+
 }
 
 
 // ===================================
-// 🔑 API ROUTES (Shared Logic)
+// JSONBIN CONFIG
 // ===================================
-
 const JSONBIN_API_KEY = "$2a$10$BV..TadGPZnl8Hs6rUs4h.kJFEnRDmK6YPqd8onbIEhfCKSixLI66";
 const JSONBIN_BIN_ID = "69c7236dc3097a1dd56a6836";
+
 
 // Helper: Fetch Licenses
 async function fetchLicenses() {
@@ -152,10 +163,11 @@ async function fetchLicenses() {
     }
 
     return { licenses, data };
+
 }
 
 
-// 1. Validate License
+// Validate License
 app.post('/api/validate-license', async (req, res) => {
 
     try {
