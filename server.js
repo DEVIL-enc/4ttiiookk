@@ -92,7 +92,6 @@ app.use((req, res, next) => {
         "/js/utils.js",
         "/js/fingerprint.js",
         "/js/api.js",
-        "/js/auth.js"
     ];
 
     const blockedJS =
