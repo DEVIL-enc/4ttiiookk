@@ -42,51 +42,97 @@ app.use('/lib', express.static(path.join(__dirname, 'lib'), {
     immutable: true
 }));
 
-// ===================================
-// STATIC FILE ACCESS PROTECTION (FINAL CORRECT ORDER)
-// ===================================
+// ================= STATIC FILE PROTECTION =================
+
+const crypto = require("crypto");
+
+const SESSION_SECRET = process.env.SESSION_SECRET;
+
+function verifyToken(token) {
+    try {
+        if (!token || typeof token !== "string") return null;
+
+        const parts = token.split(".");
+        if (parts.length !== 2) return null;
+
+        const [payload, signature] = parts;
+
+        const expected = crypto
+            .createHmac("sha256", SESSION_SECRET)
+            .update(payload)
+            .digest("hex");
+
+        if (signature.length !== expected.length) return null;
+
+        if (
+            crypto.timingSafeEqual(
+                Buffer.from(signature),
+                Buffer.from(expected)
+            )
+        ) {
+            return JSON.parse(
+                Buffer.from(payload, "base64").toString()
+            );
+        }
+
+        return null;
+
+    } catch {
+        return null;
+    }
+}
+
 app.use((req, res, next) => {
 
-    const token = req.cookies.flowtik_token;
+    const isLib = req.path.startsWith("/lib/");
+    const isIndex = req.path === "/" || req.path === "/index.html";
 
-    // السماح بكل API بدون فحص
-    if (req.path.startsWith("/api/")) {
-        return next();
-    }
+    const allowedJS = [
+        "/js/config.js",
+        "/js/utils.js",
+        "/js/fingerprint.js",
+        "/js/api.js",
+        "/js/auth.js"
+    ];
 
-    // السماح بصفحة login دائماً
-    if (req.path === "/login.html") {
-        return next();
-    }
+    const blockedJS =
+        req.path.startsWith("/js/") &&
+        !allowedJS.includes(req.path);
 
-    // أول دخول للموقع
-    if (req.path === "/") {
-        if (!token) {
-            return res.sendFile(path.join(__dirname, "login.html"));
+    if (isLib || isIndex || blockedJS) {
+
+        const token = req.cookies.flowtik_token;
+        const decoded = token ? verifyToken(token) : null;
+
+        if (!decoded) {
+
+            if (isIndex) {
+                return res.redirect("/login.html");
+            }
+
+            return res.status(403).json({
+                error: "Unauthorized"
+            });
         }
-        return res.sendFile(path.join(__dirname, "index.html"));
+
+        if (decoded.expiresAt && decoded.expiresAt < Date.now()) {
+
+            res.clearCookie("flowtik_token");
+
+            if (isIndex) {
+                return res.redirect("/login.html");
+            }
+
+            return res.status(403).json({
+                error: "Session expired"
+            });
+        }
     }
 
-    // منع فتح index بدون تسجيل دخول
-    if (req.path === "/index.html" && !token) {
-        return res.sendFile(path.join(__dirname, "login.html"));
-    }
-
-    // حماية lib
-    if (req.path.startsWith("/lib/") && !token) {
-        return res.status(403).send("Unauthorized");
-    }
-
-    // السماح بعد تسجيل الدخول
-    if (token) {
-        return next();
-    }
-
-    return res.status(404).send("Cannot GET /login");
-
+    next();
 });
 
-// Serve static files AFTER protection
+// Serve static AFTER protection
 app.use(express.static(__dirname));
 
 // ===================================
@@ -189,7 +235,18 @@ app.post('/api/validate-license', async (req, res) => {
         });
 
         // Token
-        const token = Buffer.from(`${license.key}:${deviceId}:${Date.now()}`).toString('base64');
+        const payload = Buffer.from(JSON.stringify({
+    key: license.key,
+    deviceId,
+    expiresAt: Date.now() + 86400000
+})).toString("base64");
+
+const signature = crypto
+    .createHmac("sha256", SESSION_SECRET)
+    .update(payload)
+    .digest("hex");
+
+const token = `${payload}.${signature}`;
         res.cookie('flowtik_token', token, { httpOnly: true, sameSite: 'strict', maxAge: 24 * 60 * 60 * 1000 });
 
         res.json({
@@ -225,7 +282,18 @@ app.post('/api/check-session', async (req, res) => {
         if (new Date(license.expires_at) < new Date()) return res.json({ valid: false, error: 'expired' });
 
         // Renew Token
-        const token = Buffer.from(`${license.key}:${deviceId}:${Date.now()}`).toString('base64');
+        const payload = Buffer.from(JSON.stringify({
+    key: license.key,
+    deviceId,
+    expiresAt: Date.now() + 86400000
+})).toString("base64");
+
+const signature = crypto
+    .createHmac("sha256", SESSION_SECRET)
+    .update(payload)
+    .digest("hex");
+
+const token = `${payload}.${signature}`;
         res.cookie('flowtik_token', token, { httpOnly: true, sameSite: 'strict', maxAge: 24 * 60 * 60 * 1000 });
 
         res.json({
