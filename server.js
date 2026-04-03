@@ -4,86 +4,47 @@ const path = require('path');
 const cors = require('cors');
 require('dotenv').config();
 
-// حل مشكلة fetch على Render
-const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
-
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-
-// =============================
-// BASIC MIDDLEWARE
-// =============================
+// Middleware
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors());
 
-
-// =============================
-// SECURITY HEADERS
-// =============================
+// ===================================
+// 🌍 SHARED ARRAY BUFFER HEADERS (Required for FFmpeg.wasm)
+// ===================================
 app.use((req, res, next) => {
-
     res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
     res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
-
-    res.setHeader("Cache-Control", "no-store");
-    res.setHeader("X-Frame-Options", "DENY");
-    res.setHeader("X-Content-Type-Options", "nosniff");
-
     next();
-
 });
 
 
-// =============================
-// GLOBAL ACCESS PROTECTION
-// =============================
+// ===================================
+// 🔒 GLOBAL SITE PROTECTION (NEW SAFE VERSION)
+// ===================================
 app.use((req, res, next) => {
 
-    const pathAllowed =
+    // السماح لصفحة الدخول
+    if (
         req.path === "/" ||
-        req.path === "/index.html" ||
-        req.path === "/login.html" ||
-        req.path.startsWith("/api/validate-license") ||
-        req.path.startsWith("/api/check-session");
-
-    if (pathAllowed) {
+        req.path === "/login.html"
+    ) {
         return next();
     }
 
+    // السماح لجميع API
+    if (req.path.startsWith("/api/")) {
+        return next();
+    }
+
+    // باقي الملفات تحتاج token
     const token = req.cookies.flowtik_token;
 
     if (!token) {
-        return res.status(404).send("Cannot GET /login");
-    }
-
-    if (req.method === "GET") {
-
-        const referer = req.headers.referer || "";
-        const host = req.headers.host || "";
-
-        if (referer && !referer.includes(host)) {
-            return res.status(404).send("Cannot GET /login");
-        }
-
-    }
-
-    const userAgent = (req.headers["user-agent"] || "").toLowerCase();
-
-    const blockedAgents = [
-        "curl",
-        "wget",
-        "python",
-        "node-fetch",
-        "axios",
-        "postman",
-        "scrapy",
-        "httpclient"
-    ];
-
-    if (blockedAgents.some(a => userAgent.includes(a))) {
-        return res.status(404).send("Cannot GET /login");
+        return res.redirect("/login.html");
     }
 
     next();
@@ -91,38 +52,44 @@ app.use((req, res, next) => {
 });
 
 
-// =============================
-// ENGINE PROTECTION (lib)
-// =============================
+// ===================================
+// 🛡️ SECURITY MIDDLEWARE (Engine) - MUST BE BEFORE STATIC
+// ===================================
 app.use('/lib', (req, res, next) => {
 
-    const token = req.cookies.flowtik_token;
+    if (
+        req.path.includes('ffmpeg-core.wasm') ||
+        req.path.includes('ffmpeg-core.worker.js')
+    ) {
 
-    if (!token) {
-        return res.status(403).json({
-            error: "Unauthorized access to engine"
-        });
+        const token = req.cookies.flowtik_token;
+
+        if (!token) {
+            console.log(`[Server] Blocked access to ${req.originalUrl}`);
+            return res.status(403).json({
+                error: "Unauthorized access to engine"
+            });
+        }
     }
 
     next();
 
 });
 
+// Explicitly serve lib files after check
 app.use('/lib', express.static(path.join(__dirname, 'lib'), {
     maxAge: '1y',
     immutable: true
 }));
 
 
-// =============================
-// STATIC FILES (PROTECTED)
-// =============================
+// Serve other Static Files (Public) - AFTER /lib protection
 app.use(express.static(__dirname));
 
 
-// =============================
-// DEBUG CHECK
-// =============================
+// ===================================
+// 🔍 DEBUGGING: Check files on startup
+// ===================================
 const fs = require('fs');
 
 try {
@@ -132,7 +99,7 @@ try {
     if (fs.existsSync(libPath)) {
         console.log("📂 Lib Directory Contents:", fs.readdirSync(libPath));
     } else {
-        console.error("❌ 'lib' directory DOES NOT EXIST.");
+        console.error("❌ 'lib' directory DOES NOT EXIST. Build script might have failed.");
     }
 
 } catch (e) {
@@ -142,16 +109,15 @@ try {
 }
 
 
-// =============================
-// LICENSE API CONFIG
-// =============================
+// ===================================
+// 🔑 API ROUTES (Shared Logic)
+// ===================================
+
 const JSONBIN_API_KEY = "$2a$10$BV..TadGPZnl8Hs6rUs4h.kJFEnRDmK6YPqd8onbIEhfCKSixLI66";
 const JSONBIN_BIN_ID = "69c7236dc3097a1dd56a6836";
 
 
-// =============================
-// FETCH LICENSES
-// =============================
+// Helper: Fetch Licenses
 async function fetchLicenses() {
 
     const response = await fetch(
@@ -161,145 +127,207 @@ async function fetchLicenses() {
         }
     );
 
+    if (!response.ok)
+        throw new Error("JSONBin Fetch Failed");
+
     const data = await response.json();
 
     let licenses = [];
 
     if (Array.isArray(data.record)) licenses = data.record;
-    else if (data.record?.licenses) licenses = data.record.licenses;
+    else if (data.record && Array.isArray(data.record.licenses)) licenses = data.record.licenses;
+    else if (Array.isArray(data.record?.licenses)) licenses = data.record.licenses;
     else if (Array.isArray(data)) licenses = data;
-    else if (data.record) licenses = [data.record];
+    else if (data && typeof data === 'object' && data.record) {
 
-    return { licenses };
+        if (Array.isArray(Object.values(data.record)[0]))
+            licenses = Object.values(data.record)[0];
+        else
+            licenses = [data.record];
+
+    }
+
+    return { licenses, data };
 
 }
 
 
-// =============================
-// VALIDATE LICENSE
-// =============================
+// 1. Validate License
 app.post('/api/validate-license', async (req, res) => {
 
     try {
 
         const { licenseKey, deviceId } = req.body;
 
+        const userAgent = req.headers['user-agent'] || 'Server';
+
         if (!licenseKey || !deviceId)
-            return res.json({ valid: false });
+            return res.status(400).json({
+                valid: false,
+                error: 'Missing Data'
+            });
 
         const { licenses } = await fetchLicenses();
 
-        const license = licenses.find(
-            l => l.key.trim().toUpperCase() === licenseKey.trim().toUpperCase()
+        const normalize = k =>
+            k ? k.trim().toUpperCase() : '';
+
+        const index = licenses.findIndex(
+            l => normalize(l.key) === normalize(licenseKey)
         );
 
-        if (!license)
+        if (index === -1)
             return res.json({
                 valid: false,
-                error: "invalidLicense"
+                error: 'invalidLicense',
+                message: 'لايوجد اشتراك'
             });
 
-        if (license.device_hash && license.device_hash !== deviceId)
+        const license = licenses[index];
+
+        const now = new Date();
+
+
+        if (!license.activated_on) {
+
+            license.activated_on = now.toISOString();
+
+            license.device_hash = deviceId;
+
+            license.device_name = simplifyUserAgent(userAgent);
+
+            license.processed_videos = 0;
+
+            if (license.duration_days) {
+
+                const exp = new Date();
+
+                exp.setDate(now.getDate() + license.duration_days);
+
+                license.expires_at = exp.toISOString();
+
+            }
+
+        }
+
+
+        if (
+            license.device_hash &&
+            license.device_hash !== deviceId
+        ) {
+
             return res.json({
                 valid: false,
-                error: "deviceMismatch"
+                error: 'deviceMismatch',
+                message: 'المفتاح مرتبط بجهاز مختلف'
             });
 
-        if (license.expires_at && new Date(license.expires_at) < new Date())
+        }
+
+
+        if (
+            license.expires_at &&
+            new Date(license.expires_at) < now
+        ) {
+
             return res.json({
                 valid: false,
-                error: "expired"
+                error: 'expired',
+                message: 'انتهت صلاحية المفتاح '
             });
+
+        }
+
+
+        license.processed_videos =
+            (license.processed_videos || 0) + 1;
+
+
+        licenses[index] = license;
+
+
+        await fetch(
+            `https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`,
+            {
+                method: 'PUT',
+                headers: {
+                    'X-Master-Key': JSONBIN_API_KEY,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ licenses })
+            }
+        );
+
 
         const token = Buffer.from(
             `${license.key}:${deviceId}:${Date.now()}`
-        ).toString("base64");
+        ).toString('base64');
 
-        res.cookie("flowtik_token", token, {
-            httpOnly: true,
-            sameSite: "strict",
-            maxAge: 24 * 60 * 60 * 1000
-        });
 
-        res.json({ valid: true });
+        res.cookie(
+            'flowtik_token',
+            token,
+            {
+                httpOnly: true,
+                sameSite: 'strict',
+                maxAge: 24 * 60 * 60 * 1000
+            }
+        );
 
-    } catch (e) {
-
-        console.error(e);
 
         res.json({
-            valid: false,
-            error: "server_error"
+            valid: true,
+            license: {
+                key: license.key,
+                plan: license.plan,
+                expiresAt: license.expires_at,
+                activatedAt: license.activated_on,
+                processed_videos: license.processed_videos,
+                device_name: license.device_name
+            }
         });
 
     }
 
-});
-
-
-// =============================
-// SESSION CHECK
-// =============================
-app.post('/api/check-session', async (req, res) => {
-
-    try {
-
-        const { licenseKey, deviceId } = req.body;
-
-        if (!licenseKey || !deviceId)
-            return res.json({ valid: false });
-
-        const { licenses } = await fetchLicenses();
-
-        const license = licenses.find(
-            l => l.key.trim().toUpperCase() === licenseKey.trim().toUpperCase()
-        );
-
-        if (!license)
-            return res.json({ valid: false });
-
-        if (license.device_hash !== deviceId)
-            return res.json({ valid: false });
-
-        if (new Date(license.expires_at) < new Date())
-            return res.json({ valid: false });
-
-        const token = Buffer.from(
-            `${license.key}:${deviceId}:${Date.now()}`
-        ).toString("base64");
-
-        res.cookie("flowtik_token", token, {
-            httpOnly: true,
-            sameSite: "strict",
-            maxAge: 24 * 60 * 60 * 1000
-        });
-
-        res.json({ valid: true });
-
-    } catch (e) {
+    catch (e) {
 
         console.error(e);
 
-        res.json({ valid: false });
+        res.status(500).json({
+            valid: false,
+            error: 'server_error'
+        });
 
     }
 
 });
 
 
-// =============================
-// FINAL BLOCKER
-// =============================
-app.use((req, res) => {
-    res.status(404).send("Cannot GET /login");
-});
+// Helper
+function simplifyUserAgent(ua) {
+
+    if (/iPhone|iPad|iPod/.test(ua))
+        return 'Apple Device';
+
+    if (/Android/.test(ua))
+        return 'Android Device';
+
+    if (/Windows/.test(ua))
+        return 'Windows PC';
+
+    if (/Mac/.test(ua))
+        return 'Mac Computer';
+
+    return 'Unknown Device';
+
+}
 
 
-// =============================
-// START SERVER
-// =============================
+// Start Server
 app.listen(PORT, () => {
 
-    console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`🚀 Server running on http://localhost:${PORT}`);
+
+    console.log(`📂 Serving static files from ${__dirname}`);
 
 });
