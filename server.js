@@ -38,15 +38,14 @@ app.use((req, res, next) => {
 // =============================
 app.use((req, res, next) => {
 
-    const allowedPaths = [
-        "/",
-        "/index.html",
-        "/login.html",
-        "/api/validate-license",
-        "/api/check-session"
-    ];
+    const pathAllowed =
+        req.path === "/" ||
+        req.path === "/index.html" ||
+        req.path === "/login.html" ||
+        req.path.startsWith("/api/validate-license") ||
+        req.path.startsWith("/api/check-session");
 
-    if (allowedPaths.includes(req.path)) {
+    if (pathAllowed) {
         return next();
     }
 
@@ -56,7 +55,7 @@ app.use((req, res, next) => {
         return res.status(404).send("Cannot GET /login");
     }
 
-    // حماية referer فقط لطلبات تحميل الملفات GET
+    // حماية referer فقط لطلبات GET (تحميل الملفات)
     if (req.method === "GET") {
 
         const referer = req.headers.referer || "";
