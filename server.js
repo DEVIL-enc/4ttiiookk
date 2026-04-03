@@ -101,7 +101,7 @@ try {
 // 🔑 API ROUTES (Shared Logic)
 // ===================================
 
-const JSONBIN_API_KEY = "$2a$10$BV..TadGPZnl8Hs6rUs4h.kJFEnRDmK6YPqd8onbIEhfCKSixLI66";
+const JSONBIN_API_KEY = process.env.JSONBIN_API_KEY;
 const JSONBIN_BIN_ID = "69c7236dc3097a1dd56a6836";
 
 // Helper: Fetch Licenses
