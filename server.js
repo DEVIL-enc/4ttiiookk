@@ -42,41 +42,7 @@ app.use('/lib', express.static(path.join(__dirname, 'lib'), {
     immutable: true
 }));
 
-// ===================================
-// STATIC FILE ACCESS PROTECTION (FINAL SAFE)
-// ===================================
-// ===================================
-// STATIC FILE ACCESS PROTECTION (FIXED FINAL)
-// ===================================
-app.use((req, res, next) => {
-
-    // السماح بكل API بدون أي فحص
-    if (req.path.startsWith("/api/")) {
-        return next();
-    }
-
-    const token = req.cookies.flowtik_token;
-
-    // أول دخول للموقع يفتح login مباشرة
-    if (req.path === "/" && !token) {
-        return res.sendFile(path.join(__dirname, "login.html"));
-    }
-
-    // السماح بصفحة login دائمًا
-    if (req.path === "/login.html") {
-        return next();
-    }
-
-    // السماح بالدخول بعد تسجيل الدخول
-    if (token) {
-        return next();
-    }
-
-    return res.status(404).send("Cannot GET /login");
-
-});
-
-// Serve other Static Files (Public) AFTER protection
+// Serve other Static Files (Public) - AFTER /lib protection
 app.use(express.static(__dirname));
 
 // ===================================
@@ -99,7 +65,7 @@ try {
 // 🔑 API ROUTES (Shared Logic)
 // ===================================
 
-const JSONBIN_API_KEY = process.env.JSONBIN_API_KEY;
+const JSONBIN_API_KEY = "$2a$10$BV..TadGPZnl8Hs6rUs4h.kJFEnRDmK6YPqd8onbIEhfCKSixLI66";
 const JSONBIN_BIN_ID = "69c7236dc3097a1dd56a6836";
 
 // Helper: Fetch Licenses
