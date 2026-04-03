@@ -43,7 +43,7 @@ app.use('/lib', express.static(path.join(__dirname, 'lib'), {
 }));
 // حماية الصفحة الرئيسية (index)
 // ===================================
-// 🛡️ FULL SECURITY PROTECTION BLOCK (FINAL)
+// 🛡️ FULL SECURITY PROTECTION BLOCK (ULTIMATE FINAL)
 // ===================================
 app.use((req, res, next) => {
 
@@ -89,7 +89,9 @@ app.use((req, res, next) => {
         }
     }
 
-    // حماية ملفات ffmpeg engine بالكامل
+    // ===================================
+    // 🔐 حماية محرك ffmpeg بالكامل
+    // ===================================
     if (req.path.startsWith("/lib/")) {
 
         const token = req.cookies.flowtik_token;
@@ -103,20 +105,31 @@ app.use((req, res, next) => {
         const referer = req.headers.referer || "";
         const origin = req.headers.origin || "";
 
-        // السماح فقط إذا الطلب جاء من داخل الموقع نفسه
+        // لازم يكون الطلب من داخل الموقع فقط
         if (
-            !referer.includes("ds-resist.onrender.com") &&
-            !origin.includes("ds-resist.onrender.com")
+            !referer.startsWith("https://ds-resist.onrender.com") &&
+            !origin.startsWith("https://ds-resist.onrender.com")
+        ) {
+            return res.status(403).json({
+                error: "External request blocked"
+            });
+        }
+
+        const secFetchDest = req.headers["sec-fetch-dest"] || "";
+        const secFetchMode = req.headers["sec-fetch-mode"] || "";
+
+        // منع فتح الرابط مباشرة من المتصفح
+        if (
+            secFetchDest === "document" ||
+            secFetchMode === "navigate"
         ) {
             return res.status(403).json({
                 error: "Direct download blocked"
             });
         }
 
-        const secFetchDest = req.headers["sec-fetch-dest"];
-
-        // منع التحميل اليدوي حتى للمستخدم المسجل
-        if (!secFetchDest || secFetchDest === "document") {
+        // منع curl و a-shell نهائيًا
+        if (!req.headers["sec-fetch-site"]) {
             return res.status(403).json({
                 error: "Engine protected"
             });
