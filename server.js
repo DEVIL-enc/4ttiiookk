@@ -24,27 +24,16 @@ app.use((req, res, next) => {
 // ===================================
 // 🛡️ SECURITY MIDDLEWARE (Engine) - MUST BE BEFORE STATIC
 // ===================================
-app.use('/lib', (req, res, next) => {
-
-    if (
-        req.path.includes('ffmpeg-core.wasm') ||
-        req.path.includes('ffmpeg-core.worker.js')
-    ) {
-
+app.use((req, res, next) => {
+    // Only protect FFmpeg core files
+    if (req.path.includes('ffmpeg-core.wasm') || req.path.includes('ffmpeg-core.worker.js')) {
         const token = req.cookies.flowtik_token;
-        const decoded = token ? verifyToken(token) : null;
-
-        if (!decoded) {
+        if (!token) {
             console.log(`[Server] Blocked access to ${req.originalUrl}`);
-            return res
-                .status(403)
-                .json({ error: "Unauthorized access to engine" });
+            return res.status(403).json({ error: "Unauthorized access to engine" });
         }
-
     }
-
     next();
-
 });
 
 // Explicitly serve lib files after check
@@ -53,100 +42,7 @@ app.use('/lib', express.static(path.join(__dirname, 'lib'), {
     immutable: true
 }));
 
-// ================= STATIC FILE PROTECTION =================
-
-const crypto = require("crypto");
-
-const SESSION_SECRET = process.env.SESSION_SECRET;
-
-function verifyToken(token) {
-    try {
-        if (!token || typeof token !== "string") return null;
-
-        const parts = token.split(".");
-        if (parts.length !== 2) return null;
-
-        const [payload, signature] = parts;
-
-        const expected = crypto
-            .createHmac("sha256", SESSION_SECRET)
-            .update(payload)
-            .digest("hex");
-
-        if (signature.length !== expected.length) return null;
-
-        if (
-            crypto.timingSafeEqual(
-                Buffer.from(signature),
-                Buffer.from(expected)
-            )
-        ) {
-            return JSON.parse(
-                Buffer.from(payload, "base64").toString()
-            );
-        }
-
-        return null;
-
-    } catch {
-        return null;
-    }
-}
-
-app.use((req, res, next) => {
-
-    const isLib = req.path.startsWith("/lib/");
-    const isIndex = req.path === "/" || req.path === "/index.html";
-
-    const allowedJS = [
-        "/js/config.js",
-        "/js/utils.js",
-        "/js/fingerprint.js",
-        "/js/api.js",
-    ];
-
-    const blockedJS = req.path === "/js/auth.js";
-
-    if (
-    isLib ||
-    isIndex ||
-    blockedJS ||
-    req.path.includes("ffmpeg-core.wasm") ||
-    req.path.includes("ffmpeg-core.worker.js")
-) {
-
-        const token = req.cookies.flowtik_token;
-        const decoded = token ? verifyToken(token) : null;
-
-        if (!decoded) {
-
-            if (isIndex) {
-                return res.redirect("/login.html");
-            }
-
-            return res.status(403).json({
-                error: "Unauthorized"
-            });
-        }
-
-        if (decoded.expiresAt && decoded.expiresAt < Date.now()) {
-
-            res.clearCookie("flowtik_token");
-
-            if (isIndex) {
-                return res.redirect("/login.html");
-            }
-
-            return res.status(403).json({
-                error: "Session expired"
-            });
-        }
-    }
-
-    next();
-});
-
-// Serve static AFTER protection
+// Serve other Static Files (Public) - AFTER /lib protection
 app.use(express.static(__dirname));
 
 // ===================================
@@ -249,18 +145,7 @@ app.post('/api/validate-license', async (req, res) => {
         });
 
         // Token
-        const payload = Buffer.from(JSON.stringify({
-    key: license.key,
-    deviceId,
-    expiresAt: Date.now() + 86400000
-})).toString("base64");
-
-const signature = crypto
-    .createHmac("sha256", SESSION_SECRET)
-    .update(payload)
-    .digest("hex");
-
-const token = `${payload}.${signature}`;
+        const token = Buffer.from(`${license.key}:${deviceId}:${Date.now()}`).toString('base64');
         res.cookie('flowtik_token', token, { httpOnly: true, sameSite: 'strict', maxAge: 24 * 60 * 60 * 1000 });
 
         res.json({
@@ -296,18 +181,7 @@ app.post('/api/check-session', async (req, res) => {
         if (new Date(license.expires_at) < new Date()) return res.json({ valid: false, error: 'expired' });
 
         // Renew Token
-        const payload = Buffer.from(JSON.stringify({
-    key: license.key,
-    deviceId,
-    expiresAt: Date.now() + 86400000
-})).toString("base64");
-
-const signature = crypto
-    .createHmac("sha256", SESSION_SECRET)
-    .update(payload)
-    .digest("hex");
-
-const token = `${payload}.${signature}`;
+        const token = Buffer.from(`${license.key}:${deviceId}:${Date.now()}`).toString('base64');
         res.cookie('flowtik_token', token, { httpOnly: true, sameSite: 'strict', maxAge: 24 * 60 * 60 * 1000 });
 
         res.json({
