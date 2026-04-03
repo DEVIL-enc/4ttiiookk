@@ -52,19 +52,23 @@ app.use((req, res, next) => {
         return next();
     }
 
-    // السماح بالصفحات الأساسية دائمًا
+    // السماح بصفحة login فقط بدون session
+    if (req.path === "/login.html") {
+        return next();
+    }
+
+    const token = req.cookies.flowtik_token;
+    const referer = req.headers.referer || "";
+
+    // السماح بالدخول إلى index فقط إذا المستخدم مسجل دخول
     if (
-        req.path === "/" ||
-        req.path === "/login.html" ||
-        req.path === "/index.html"
+        (req.path === "/" || req.path === "/index.html") &&
+        token
     ) {
         return next();
     }
 
-    const referer = req.headers.referer || "";
-    const token = req.cookies.flowtik_token;
-
-    // السماح فقط إذا الطلب من داخل الموقع ومعه session
+    // السماح بالملفات فقط إذا الطلب من داخل الموقع ومع session
     if (referer.includes(req.headers.host) && token) {
         return next();
     }
