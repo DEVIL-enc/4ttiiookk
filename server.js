@@ -7,10 +7,12 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+
 // Middleware
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors());
+
 
 // ===================================
 // SHARED ARRAY BUFFER HEADERS (Required for FFmpeg.wasm)
@@ -20,6 +22,7 @@ app.use((req, res, next) => {
     res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
     next();
 });
+
 
 // ===================================
 // SECURITY MIDDLEWARE (Engine)
@@ -45,7 +48,6 @@ app.use('/lib', (req, res, next) => {
 
 });
 
-// Serve lib files after protection
 app.use('/lib', express.static(path.join(__dirname, 'lib'), {
     maxAge: '1y',
     immutable: true
@@ -53,7 +55,7 @@ app.use('/lib', express.static(path.join(__dirname, 'lib'), {
 
 
 // ===================================
-// SMART DOWNLOAD PROTECTION
+// SMART DOWNLOAD PROTECTION (FIXED VERSION)
 // ===================================
 app.use((req, res, next) => {
 
@@ -72,20 +74,21 @@ app.use((req, res, next) => {
 
     const token = req.cookies.flowtik_token;
 
-    // إذا لا يوجد تسجيل دخول
+    // إذا لا يوجد token
     if (!token) {
 
+        // إذا طلب index مباشرة
         if (req.path === "/index.html") {
             return res.sendFile(path.join(__dirname, "login.html"));
         }
 
+        // باقي الملفات
         return res.status(404).send("Cannot GET /login");
     }
 
-    // منع التحميل المباشر مثل curl أو a-shell
+    // منع التحميل المباشر مثل curl و a-shell
     const referer = req.headers.referer;
 
-    // هنا التصحيح النهائي (لا نمنع إذا referer غير موجود)
     if (referer && !referer.includes(req.headers.host)) {
 
         if (req.path === "/index.html") {
@@ -99,7 +102,8 @@ app.use((req, res, next) => {
 
 });
 
-// Serve other Static Files AFTER protection
+
+// Serve static files AFTER protection
 app.use(express.static(__dirname));
 
 
