@@ -48,38 +48,43 @@ app.use('/lib', express.static(path.join(__dirname, 'lib'), {
 // ===================================
 // STATIC FILE ACCESS PROTECTION (PRO)
 // ===================================
+// ===================================
+// FINAL STABLE STATIC PROTECTION
+// ===================================
 app.use((req, res, next) => {
 
     const token = req.cookies.flowtik_token;
 
-    // السماح بكل API دائماً
+    // السماح لكل API دائماً
     if (req.path.startsWith("/api/")) {
         return next();
     }
 
-    // السماح بصفحة login دائماً
-    if (req.path === "/login.html") {
+    // السماح بالدخول للموقع أول مرة
+    if (
+        req.path === "/" ||
+        req.path === "/login.html" ||
+        req.path === "/index.html"
+    ) {
         return next();
     }
 
-    // عند دخول الموقع أول مرة
-    if (req.path === "/" && !token) {
-        return res.sendFile(path.join(__dirname, "login.html"));
+    // حماية lib (محرك ffmpeg)
+    if (req.path.startsWith("/lib/") && !token) {
+        return res.status(403).send("Unauthorized");
     }
 
-    // منع فتح index بدون تسجيل دخول
-    if (req.path === "/index.html" && !token) {
-        return res.sendFile(path.join(__dirname, "login.html"));
+    // حماية باقي الملفات بدون session
+    if (!token) {
+        return res.status(404).send("Cannot GET /login");
     }
 
-    // السماح بباقي الملفات بعد تسجيل الدخول
-    if (token) {
-        return next();
-    }
-
-    return res.status(404).send("Cannot GET /login");
+    next();
 
 });
+
+// تشغيل الملفات بعد الحماية
+app.use(express.static(__dirname));
 
 // Serve static files AFTER protection
 app.use(express.static(__dirname));
