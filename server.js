@@ -7,10 +7,12 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+
 // Middleware
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors());
+
 
 // ===================================
 // SHARED ARRAY BUFFER HEADERS (Required for FFmpeg.wasm)
@@ -21,8 +23,9 @@ app.use((req, res, next) => {
     next();
 });
 
+
 // ===================================
-// SECURITY MIDDLEWARE (Engine)
+// ENGINE PROTECTION
 // ===================================
 app.use('/lib', (req, res, next) => {
 
@@ -51,7 +54,7 @@ app.use('/lib', express.static(path.join(__dirname, 'lib'), {
 
 
 // ===================================
-// SMART DOWNLOAD PROTECTION
+// BLOCK DIRECT FILE ACCESS
 // ===================================
 app.use((req, res, next) => {
 
@@ -63,14 +66,14 @@ app.use((req, res, next) => {
         return next();
     }
 
-    // السماح لجميع API
+    // السماح لـ API
     if (req.path.startsWith("/api/")) {
         return next();
     }
 
     const token = req.cookies.flowtik_token;
 
-    // إذا لا يوجد تسجيل دخول
+    // إذا غير مسجل دخول
     if (!token) {
 
         if (req.path === "/index.html") {
@@ -80,7 +83,7 @@ app.use((req, res, next) => {
         return res.status(404).send("Cannot GET /login");
     }
 
-    // منع السحب عبر curl / a-shell / wget
+    // منع أدوات السحب
     const ua = (req.headers["user-agent"] || "").toLowerCase();
 
     const blockedAgents = [
@@ -112,28 +115,6 @@ app.use(express.static(__dirname));
 
 
 // ===================================
-// DEBUGGING: Check files on startup
-// ===================================
-const fs = require('fs');
-
-try {
-
-    const libPath = path.join(__dirname, 'lib');
-
-    if (fs.existsSync(libPath)) {
-        console.log("📂 Lib Directory Contents:", fs.readdirSync(libPath));
-    } else {
-        console.error("❌ 'lib' directory DOES NOT EXIST.");
-    }
-
-} catch (e) {
-
-    console.error("Debug Error:", e);
-
-}
-
-
-// ===================================
 // JSONBIN CONFIG
 // ===================================
 const JSONBIN_API_KEY = "$2a$10$BV..TadGPZnl8Hs6rUs4h.kJFEnRDmK6YPqd8onbIEhfCKSixLI66";
@@ -158,19 +139,11 @@ async function fetchLicenses() {
     let licenses = [];
 
     if (Array.isArray(data.record)) licenses = data.record;
-    else if (data.record && Array.isArray(data.record.licenses)) licenses = data.record.licenses;
-    else if (Array.isArray(data.record?.licenses)) licenses = data.record.licenses;
+    else if (data.record?.licenses) licenses = data.record.licenses;
     else if (Array.isArray(data)) licenses = data;
-    else if (data && typeof data === 'object' && data.record) {
+    else if (data.record) licenses = [data.record];
 
-        if (Array.isArray(Object.values(data.record)[0]))
-            licenses = Object.values(data.record)[0];
-        else
-            licenses = [data.record];
-
-    }
-
-    return { licenses, data };
+    return { licenses };
 
 }
 
@@ -208,23 +181,6 @@ app.post('/api/validate-license', async (req, res) => {
         const license = licenses[index];
         const now = new Date();
 
-        if (!license.activated_on) {
-
-            license.activated_on = now.toISOString();
-            license.device_hash = deviceId;
-            license.device_name = simplifyUserAgent(userAgent);
-            license.processed_videos = 0;
-
-            if (license.duration_days) {
-
-                const exp = new Date();
-                exp.setDate(now.getDate() + license.duration_days);
-                license.expires_at = exp.toISOString();
-
-            }
-
-        }
-
         if (
             license.device_hash &&
             license.device_hash !== deviceId
@@ -251,23 +207,6 @@ app.post('/api/validate-license', async (req, res) => {
 
         }
 
-        license.processed_videos =
-            (license.processed_videos || 0) + 1;
-
-        licenses[index] = license;
-
-        await fetch(
-            `https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`,
-            {
-                method: 'PUT',
-                headers: {
-                    'X-Master-Key': JSONBIN_API_KEY,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ licenses })
-            }
-        );
-
         const token = Buffer.from(
             `${license.key}:${deviceId}:${Date.now()}`
         ).toString('base64');
@@ -282,17 +221,7 @@ app.post('/api/validate-license', async (req, res) => {
             }
         );
 
-        res.json({
-            valid: true,
-            license: {
-                key: license.key,
-                plan: license.plan,
-                expiresAt: license.expires_at,
-                activatedAt: license.activated_on,
-                processed_videos: license.processed_videos,
-                device_name: license.device_name
-            }
-        });
+        res.json({ valid: true });
 
     }
 
@@ -310,23 +239,9 @@ app.post('/api/validate-license', async (req, res) => {
 });
 
 
-// Helper
-function simplifyUserAgent(ua) {
-
-    if (/iPhone|iPad|iPod/.test(ua)) return 'Apple Device';
-    if (/Android/.test(ua)) return 'Android Device';
-    if (/Windows/.test(ua)) return 'Windows PC';
-    if (/Mac/.test(ua)) return 'Mac Computer';
-
-    return 'Unknown Device';
-
-}
-
-
 // Start Server
 app.listen(PORT, () => {
 
     console.log(`🚀 Server running on http://localhost:${PORT}`);
-    console.log(`📂 Serving static files from ${__dirname}`);
 
 });
