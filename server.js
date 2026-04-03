@@ -26,6 +26,16 @@ app.use((req, res, next) => {
 // ===================================
 app.use((req, res, next) => {
 
+    const publicPaths = [
+        "/login.html",
+        "/api/validate-license",
+        "/api/check-session"
+    ];
+
+    if (publicPaths.includes(req.path)) {
+        return next();
+    }
+
     const token = req.cookies.flowtik_token;
 
     if (!token) {
