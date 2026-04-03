@@ -41,7 +41,35 @@ app.use('/lib', express.static(path.join(__dirname, 'lib'), {
     maxAge: '1y', // Cache control for performance
     immutable: true
 }));
+// حماية الصفحة الرئيسية (index)
+app.use((req, res, next) => {
 
+    const publicPaths = [
+        "/login.html",
+        "/api/validate-license",
+        "/api/check-session",
+        "/js/auth.js",
+        "/js/api.js",
+        "/js/config.js",
+        "/js/utils.js",
+        "/js/fingerprint.js"
+    ];
+
+    if (publicPaths.includes(req.path)) {
+        return next();
+    }
+
+    if (req.path === "/" || req.path === "/index.html") {
+
+        const token = req.cookies.flowtik_token;
+
+        if (!token) {
+            return res.redirect("/login.html");
+        }
+    }
+
+    next();
+});
 // Serve other Static Files (Public) - AFTER /lib protection
 app.use(express.static(__dirname));
 
