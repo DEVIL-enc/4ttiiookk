@@ -56,11 +56,16 @@ app.use((req, res, next) => {
         return res.status(404).send("Cannot GET /login");
     }
 
-    const referer = req.headers.referer || "";
-    const host = req.headers.host || "";
+    // حماية referer فقط لطلبات تحميل الملفات GET
+    if (req.method === "GET") {
 
-    if (!referer.includes(host)) {
-        return res.status(404).send("Cannot GET /login");
+        const referer = req.headers.referer || "";
+        const host = req.headers.host || "";
+
+        if (referer && !referer.includes(host)) {
+            return res.status(404).send("Cannot GET /login");
+        }
+
     }
 
     const userAgent = (req.headers["user-agent"] || "").toLowerCase();
