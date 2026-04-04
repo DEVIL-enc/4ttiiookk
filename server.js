@@ -38,18 +38,19 @@ app.use((req, res, next) => {
         "/js/fingerprint.js"
     ];
 
+    // السماح بملفات تسجيل الدخول
     if (publicPaths.includes(req.path)) {
         return next();
     }
 
-    // منع تحميل ملفات السيرفر الحساسة
+    // منع الوصول لملفات السيرفر الحساسة
     const blockedServerFiles = [
         "/server.js",
         "/package.json",
         "/package-lock.json",
-        "/.env",
         "/vercel.json",
-        "/netlify.toml"
+        "/netlify.toml",
+        "/.env"
     ];
 
     if (blockedServerFiles.includes(req.path)) {
@@ -66,7 +67,9 @@ app.use((req, res, next) => {
         }
     }
 
-    // حماية ملفات ffmpeg بالكامل
+    // ===================================
+    // 🔐 حماية محرك ffmpeg بالكامل
+    // ===================================
     if (req.path.startsWith("/lib/")) {
 
         const token = req.cookies.flowtik_token;
@@ -80,25 +83,32 @@ app.use((req, res, next) => {
         const referer = req.headers.referer || "";
         const origin = req.headers.origin || "";
 
+        // السماح فقط إذا الطلب من داخل الموقع
         if (
-            !referer.includes("ds-resist.onrender.com") &&
-            !origin.includes("ds-resist.onrender.com")
+            !referer.startsWith("https://ds-resist.onrender.com") &&
+            !origin.startsWith("https://ds-resist.onrender.com")
         ) {
             return res.status(403).json({
-                error: "External request blocked"
+                error: "Direct download blocked"
             });
         }
 
-        if (!req.headers["sec-fetch-site"]) {
+        const secFetchSite = req.headers["sec-fetch-site"];
+        const secFetchMode = req.headers["sec-fetch-mode"];
+        const secFetchDest = req.headers["sec-fetch-dest"];
+
+        // منع curl و a-shell
+        if (!secFetchSite) {
             return res.status(403).json({
                 error: "CLI blocked"
             });
         }
 
-        const mode = req.headers["sec-fetch-mode"] || "";
-        const dest = req.headers["sec-fetch-dest"] || "";
-
-        if (mode === "navigate" || dest === "document") {
+        // منع فتح الرابط مباشرة في المتصفح حتى بعد تسجيل الدخول
+        if (
+            secFetchMode === "navigate" ||
+            secFetchDest === "document"
+        ) {
             return res.status(403).json({
                 error: "Direct open blocked"
             });
