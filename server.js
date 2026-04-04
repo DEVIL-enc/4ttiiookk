@@ -22,32 +22,12 @@ app.use((req, res, next) => {
 });
 
 // ===================================
-// 🛡️ SECURITY MIDDLEWARE (Engine) - MUST BE BEFORE STATIC
-// ===================================
-app.use('/lib', (req, res, next) => {
-    // Only protect FFmpeg core files
-    if (req.path.includes('ffmpeg-core.wasm') || req.path.includes('ffmpeg-core.worker.js')) {
-        const token = req.cookies.flowtik_token;
-        if (!token) {
-            console.log(`[Server] Blocked access to ${req.originalUrl}`);
-            return res.status(403).json({ error: "Unauthorized access to engine" });
-        }
-    }
-    next();
-});
-
-// Explicitly serve lib files after check
-app.use('/lib', express.static(path.join(__dirname, 'lib'), {
-    maxAge: '1y', // Cache control for performance
-    immutable: true
-}));
-// حماية الصفحة الرئيسية (index)
-// ===================================
-// 🛡️ FULL SECURITY PROTECTION BLOCK (ULTIMATE FINAL)
+// 🛡️ FINAL FULL SECURITY BLOCK
 // ===================================
 app.use((req, res, next) => {
 
     const publicPaths = [
+        "/",
         "/login.html",
         "/api/validate-license",
         "/api/check-session",
@@ -58,7 +38,6 @@ app.use((req, res, next) => {
         "/js/fingerprint.js"
     ];
 
-    // السماح بملفات تسجيل الدخول
     if (publicPaths.includes(req.path)) {
         return next();
     }
@@ -68,14 +47,12 @@ app.use((req, res, next) => {
         "/server.js",
         "/package.json",
         "/package-lock.json",
+        "/.env",
         "/vercel.json",
-        "/netlify.toml",
-        "/render",
-        "/.env"
+        "/netlify.toml"
     ];
 
     if (blockedServerFiles.includes(req.path)) {
-        console.log("Blocked server file:", req.path);
         return res.status(403).send("Access denied");
     }
 
@@ -89,9 +66,7 @@ app.use((req, res, next) => {
         }
     }
 
-    // ===================================
-    // 🔐 حماية محرك ffmpeg بالكامل
-    // ===================================
+    // حماية ملفات ffmpeg بالكامل
     if (req.path.startsWith("/lib/")) {
 
         const token = req.cookies.flowtik_token;
@@ -105,33 +80,27 @@ app.use((req, res, next) => {
         const referer = req.headers.referer || "";
         const origin = req.headers.origin || "";
 
-        // لازم يكون الطلب من داخل الموقع فقط
         if (
-            !referer.startsWith("https://ds-resist.onrender.com") &&
-            !origin.startsWith("https://ds-resist.onrender.com")
+            !referer.includes("ds-resist.onrender.com") &&
+            !origin.includes("ds-resist.onrender.com")
         ) {
             return res.status(403).json({
                 error: "External request blocked"
             });
         }
 
-        const secFetchDest = req.headers["sec-fetch-dest"] || "";
-        const secFetchMode = req.headers["sec-fetch-mode"] || "";
-
-        // منع فتح الرابط مباشرة من المتصفح
-        if (
-            secFetchDest === "document" ||
-            secFetchMode === "navigate"
-        ) {
+        if (!req.headers["sec-fetch-site"]) {
             return res.status(403).json({
-                error: "Direct download blocked"
+                error: "CLI blocked"
             });
         }
 
-        // منع curl و a-shell نهائيًا
-        if (!req.headers["sec-fetch-site"]) {
+        const mode = req.headers["sec-fetch-mode"] || "";
+        const dest = req.headers["sec-fetch-dest"] || "";
+
+        if (mode === "navigate" || dest === "document") {
             return res.status(403).json({
-                error: "Engine protected"
+                error: "Direct open blocked"
             });
         }
     }
